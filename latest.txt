@@ -1,2 +1,2 @@
-VER=v4.0.0_beta2
-LINK=https://github.com/bintang774/ngentouch/releases/download/v4.0.0_beta2/NgenTouch_v4.0.0_beta2_2024-05-02.zip
+VER="v4.0.0_beta3"
+LINK="https://github.com/bintang774/ngentouch/releases/download/v4.0.0_beta3/NgenTouch_v4.0.0_beta3_2024-05-06.zip"
