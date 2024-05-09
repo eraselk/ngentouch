@@ -1,2 +1,3 @@
-VER="v4.0.0_beta3"
-LINK="https://github.com/bintang774/ngentouch/releases/download/v4.0.0_beta3/NgenTouch_v4.0.0_beta3_2024-05-06.zip"
+VER="v4.0.0_beta4"
+LINK="https://github.com/bintang774/ngentouch/releases/download/v4.0.0_beta4/NgenTouch_v4.0.0_beta4_2024-05-09_115835.zip"
+CHANGELOG="• Fix bug on free fire game (Thanks to @Sann0_xD, and @Laawwrreennccee for reported this bug)"
