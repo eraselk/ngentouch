@@ -1,3 +1,11 @@
-VER="v4.0.0_beta4"
-LINK="https://github.com/bintang774/ngentouch/releases/download/v4.0.0_beta4/NgenTouch_v4.0.0_beta4_2024-05-09_115835.zip"
-CHANGELOG="• Fix bug on free fire game (Thanks to @Sann0_xD, and @Laawwrreennccee for reported this bug)"
+VER="v4.0.0_stable"
+LINK="https://github.com/bintang774/ngentouch/releases/download/v4.0.0_stable/NgenTouch_v4.0.0_stable_2024-05-16_110709.zip"
+CHANGELOG="• Initial stable release
+• Use '[[ ]]' instead of '[ ]'
+• Add InputReader and InputDispatcher optimizer
+• Add some props that related with Input and Touch
+• Re-enable touchboost
+• Add systemui optimizer (JIT)
+• Delete unused props
+• Disable shell notification
+• And other improvements"
