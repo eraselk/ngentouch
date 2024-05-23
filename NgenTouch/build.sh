@@ -4,7 +4,7 @@ build_date=$(date +"%Y-%m-%d")
 stamp=$(date +"%H%M%S")
 
 ######################################
-module_name="YourModuleName"
+module_name="NgenTouch"
 zip_name="${module_name}_${VER}_${build_date}_${stamp}.zip"
 # 0 = Disable 1 = Enable
 remove_bak="1"
@@ -16,7 +16,7 @@ remove_bak="1"
 dir="$(pwd)/system/bin"
 mv -f $dir/ntm.sh $dir/ntm
 
-find .. -maxdepth 1 -type f -name '*$module_name*' -exec rm -f {} +
+find .. -maxdepth 1 -type f -name *$module_name* -exec rm -f {} +
 zip -r9 "$zip_name" * -x build.sh*
 mv -f ./"$zip_name" ..
 

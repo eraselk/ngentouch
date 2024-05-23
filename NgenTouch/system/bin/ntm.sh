@@ -5,12 +5,8 @@
 #
 
 run() {
+
 # Functions that needed by this script.
-
-set_prop() {
-    resetprop -n "$1" "$2"
-}
-
 write() {
     if [[ -f "$2" ]]; then
         if [[ ! -w "$2" ]]; then
@@ -61,7 +57,14 @@ change_task_cgroup() {
 	done
 }
 
-## End of functions
+refresh_rate=$(dumpsys SurfaceFlinger 2>&1 | grep 'refresh-rate' | awk '{print $3}')
+
+set_prop() {
+    resetprop -n "$1" "$2"
+}
+
+## end
+
 set_prop ro.input.resampling 1
 set_prop touch.pressure.scale 0.001
 set_prop touch.size.calibration diameter
@@ -76,13 +79,17 @@ set_prop touch.coverage.calibration box
 set_prop touch.gestureMode spots
 
 set_prop ro.surface_flinger.max_frame_buffer_acquired_buffers 3
-set_prop ro.surface_flinger.set_idle_timer_ms 5000
-set_prop ro.surface_flinger.set_touch_timer_ms 100
+set_prop ro.surface_flinger.set_idle_timer_ms 200
+set_prop ro.surface_flinger.set_touch_timer_ms 5000
 
 	if cat /proc/cpuinfo | grep "Hardware" | uniq | cut -d ":" -f 2 | grep 'Qualcomm' 2>&1 >/dev/null; then
     	set_prop persist.vendor.qti.inputopts.movetouchslop 0.1
     	set_prop persist.vendor.qti.inputopts.enable true
 	fi
+	
+# refresh rate
+setput system min_refresh_rate $refresh_rate
+setput system peak_refresh_rate $refresh_rate
 
 setput secure multi_press_timeout 200
 setput secure long_press_timeout 200
@@ -126,6 +133,8 @@ change_thread_cgroup "system_server" "InputDispatcher" "foreground" "stune"
 remove() {
   (
     settings put system pointer_speed -7
+    settings delete system min_refresh_rate
+    settings delete system peak_refresh_rate
     settings delete secure multi_press_timeout
     settings delete secure long_press_timeout
     settings delete global block_untrusted_touches
@@ -139,16 +148,16 @@ remove() {
 }
 
 help_menu() {
-  cat <<EOF
-NgenTouch Module Manager 
+cat <<EOF
+NgenTouch Module Manager
 Version $(cat /data/adb/modules/ngentouch_module/module.prop | grep 'version=' | cut -f 2 -d '=')
 
 Usage: ntm [OPTION]
 
---apply			Apply touch tweaks
---remove 		Remove NgenTouch module
---update-module 	Update NgenTouch module [WGET REQUIRED]
---help, help 		Show this message
+--apply         	Apply touch tweaks [SERVICE MODE]
+--remove                Remove NgenTouch module
+--update-module         Update NgenTouch module [WGET REQUIRED]
+--help, help            Show this message
 
 Bug or error reports, feature requests, discussions: https://t.me/gudangtoenixzdisc.
 EOF
@@ -178,7 +187,7 @@ cd /data/data/com.termux/files/home
 export PATH="/data/data/com.termux/files/usr/bin:$PATH"
 
 # Check if wget is installed
-if ! command -v wget >/dev/null 2>&1; then
+if ! command -v wget > /dev/null 2>&1; then
     echo "Hint: pkg install -y wget openssl openssh" && exit 1
 fi
 
@@ -197,27 +206,33 @@ FNAME="ngentouch.zip"
 cleanup() {
 find . -maxdepth 1 -type f -name $FNAME -exec rm -f {} +
 find . -maxdepth 1 -type f -name '*latest*' -exec rm -f {} +
-
-if [[ -f "/sdcard/update_error.txt" ]] && [[ -z "$(cat /sdcard/update_error.txt)" ]]; then
+[[ -f "/sdcard/update_error.txt" ]] && [[ -z "$(cat /sdcard/update_error.txt)" ]] && {
 	rm -f /sdcard/update_error.txt
-fi
+}
 }
 
 # Clean unnecessary files
 cleanup
 
-# Set up $MGR variable
+# Set up $MGR and $ARG variable
 MGR=""
+
+# KernelSU
 if [[ -f "$KASU" ]]; then 
 	MGR="$KASU"
+	ARG="module install"
 fi
 
+# Apatch
 if [[ -f "$APCH" ]]; then
 	MGR="$APCH"
+	ARG="module install"
 fi
 
+# Magisk
 if [[ -f "$MAGISK" ]]; then 
 	MGR="$MAGISK"
+	ARG="--install-module"
 fi
 
 echo "Checking update..."
@@ -231,7 +246,7 @@ fi
 echo ""
 
 # Download latest.txt - Important
-if ! wget -q "https://github.com/bintang774/ngentouch/raw/main/latest.txt" 2>/sdcard/update_error.txt; then
+if ! wget -q "https://github.com/bintang774/ngentouch/raw/main/latest.txt" 2> /sdcard/update_error.txt; then
 	echo "Failed to checking update."
 	echo "Try: pkg install -y openssl openssh"
 	echo "Not solved?, send the log that located in /sdcard"
@@ -242,14 +257,13 @@ fi
 
 # Import variables from latest.txt
 if [[ -f "./latest.txt" ]]; then
-	source "$(pwd)/latest.txt" 2>/sdcard/update_error.txt
+	source "$(pwd)/latest.txt"
 else
 	echo "Couldn't found file 'latest.txt'"
-	echo "Send the log that located in /sdcard"
-	echo "to https://t.me/gudangtoenixzdisc"
 	cleanup
 	exit 1
 fi
+
 VERSION="$VER"
 CL="$CHANGELOG"
 
@@ -277,7 +291,7 @@ case "$pilihan" in
  y)
     echo ""
     echo "Downloading the latest module..."
-    if wget -q "$LINK" -O "$FNAME" 2>/sdcard/update_error.txt; then
+    if wget -q "$LINK" -O "$FNAME" 2> /sdcard/update_error.txt; then
       echo "Done"
     else
       echo "Failed."
@@ -291,7 +305,7 @@ case "$pilihan" in
     echo "Installing the module..."
     echo ""
 
-    if $MGR --install-module "$FNAME" 2>/sdcard/update_error.txt; then
+    if $MGR $ARG "$FNAME" 2> /sdcard/update_error.txt; then
       echo ""
       echo "Cleaning..."
       cleanup
