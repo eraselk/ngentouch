@@ -1,11 +1,14 @@
-VER="v4.0.0_stable"
-LINK="https://github.com/bintang774/ngentouch/releases/download/v4.0.0_stable/NgenTouch_v4.0.0_stable_2024-05-16_110709.zip"
-CHANGELOG="• Initial stable release
-• Use '[[ ]]' instead of '[ ]'
-• Add InputReader and InputDispatcher optimizer
-• Add some props that related with Input and Touch
-• Re-enable touchboost
-• Add systemui optimizer (JIT)
-• Delete unused props
-• Disable shell notification
-• And other improvements"
+VER="v4.0.1_stable"
+LINK="https://github.com/bintang774/ngentouch/releases/download/v4.0.1_stable/NgenTouch_v4.0.1_stable_2024-06-01_230857.zip"
+CHANGELOG="• Menambahkan flag baru, yaitu --upload-log. Berfungsi untuk
+mengirim log kepada developer, dengan tujuan debugging.
+
+• Menghapus beberapa kode yang tidak ada kaitannya
+dengan responsivitas sentuhan.
+
+• dan improvisasi lainnya.
+
+Catatan: Direkomendasikan untuk menginstall package yang dibutuhkan
+seperti openssl, openssh, curl, dan wget sebelum menginstall modul.
+
+Pertanyaan lainnya? tanyakan di @gudangtoenixzdisc"
