@@ -5,14 +5,18 @@
 #
 
 run() {
+set -x
 
 # Functions that needed by this script.
 write() {
     if [[ -f "$2" ]]; then
+    	echo "$2 is Exists"
         if [[ ! -w "$2" ]]; then
             chmod +w "$2"
         fi
         echo "$1" > "$2"
+    else
+     	echo "$2 is not exists"
     fi
 }
 
@@ -57,8 +61,6 @@ change_task_cgroup() {
 	done
 }
 
-refresh_rate=$(dumpsys SurfaceFlinger 2>&1 | grep 'refresh-rate' | awk '{print $3}')
-
 set_prop() {
     resetprop -n "$1" "$2"
 }
@@ -77,19 +79,12 @@ set_prop touch.distance.calibration none
 set_prop touch.distance.scale 0
 set_prop touch.coverage.calibration box 
 set_prop touch.gestureMode spots
-
 set_prop ro.surface_flinger.max_frame_buffer_acquired_buffers 3
-set_prop ro.surface_flinger.set_idle_timer_ms 200
-set_prop ro.surface_flinger.set_touch_timer_ms 5000
 
 	if cat /proc/cpuinfo | grep "Hardware" | uniq | cut -d ":" -f 2 | grep 'Qualcomm' 2>&1 >/dev/null; then
     	set_prop persist.vendor.qti.inputopts.movetouchslop 0.1
     	set_prop persist.vendor.qti.inputopts.enable true
 	fi
-	
-# refresh rate
-setput system min_refresh_rate $refresh_rate
-setput system peak_refresh_rate $refresh_rate
 
 setput secure multi_press_timeout 200
 setput secure long_press_timeout 200
@@ -106,6 +101,8 @@ write "1" "$i/oplus_tp_direction"
 for boost_sr in "$(find /sys -type f -name bump_sample_rate)"; do
 	if [[ -n "$boost_sr" ]]; then
 		write "1" "$boost_sr"
+	else
+		echo "can't apply boost_sr"
 	fi
 done
 
@@ -133,14 +130,13 @@ change_thread_cgroup "system_server" "InputDispatcher" "foreground" "stune"
 remove() {
   (
     settings put system pointer_speed -7
-    settings delete system min_refresh_rate
-    settings delete system peak_refresh_rate
     settings delete secure multi_press_timeout
     settings delete secure long_press_timeout
     settings delete global block_untrusted_touches
     cmd package compile -m verify -f com.android.systemui
 	cmd package compile -m assume-verified -f com.android.systemui --compile-filter=assume-verified -c --reset
 	rm -rf /data/dalvik-cache/*
+	rm -rf /data/ngentouch
     touch /data/adb/modules/ngentouch_module/remove
   ) >/dev/null 2>&1
   echo "Done, please reboot to apply changes."
@@ -157,6 +153,7 @@ Usage: ntm [OPTION]
 --apply         	Apply touch tweaks [SERVICE MODE]
 --remove                Remove NgenTouch module
 --update-module         Update NgenTouch module [WGET REQUIRED]
+--upload-log		Upload log to developer [CURL REQUIRED]
 --help, help            Show this message
 
 Bug or error reports, feature requests, discussions: https://t.me/gudangtoenixzdisc.
@@ -206,9 +203,6 @@ FNAME="ngentouch.zip"
 cleanup() {
 find . -maxdepth 1 -type f -name $FNAME -exec rm -f {} +
 find . -maxdepth 1 -type f -name '*latest*' -exec rm -f {} +
-[[ -f "/sdcard/update_error.txt" ]] && [[ -z "$(cat /sdcard/update_error.txt)" ]] && {
-	rm -f /sdcard/update_error.txt
-}
 }
 
 # Clean unnecessary files
@@ -216,6 +210,7 @@ cleanup
 
 # Set up $MGR and $ARG variable
 MGR=""
+ARG=""
 
 # KernelSU
 if [[ -f "$KASU" ]]; then 
@@ -235,7 +230,7 @@ if [[ -f "$MAGISK" ]]; then
 	ARG="--install-module"
 fi
 
-echo "Checking update..."
+echo "Checking for update..."
 # Check internet connection
 if ping -c 1 8.8.8.8 >/dev/null 2>&1; then
     echo "[ • ] Connected (Fast Connect)" 
@@ -246,20 +241,24 @@ fi
 echo ""
 
 # Download latest.txt - Important
-if ! wget -q "https://github.com/bintang774/ngentouch/raw/main/latest.txt" 2> /sdcard/update_error.txt; then
-	echo "Failed to checking update."
+wget -nv "https://github.com/bintang774/ngentouch/raw/main/latest.txt"
+[[ "$?" -gt "0" ]] && {
+	echo ""
+	echo "Failed."
 	echo "Try: pkg install -y openssl openssh"
-	echo "Not solved?, send the log that located in /sdcard"
-	echo "to https://t.me/gudangtoenixzdisc"
+	echo "Not solved?, report to @gudangtoenixzdisc."
+	echo ""
 	cleanup
 	exit 1
-fi
+}
 
 # Import variables from latest.txt
 if [[ -f "./latest.txt" ]]; then
-	source "$(pwd)/latest.txt"
+	source "$(pwd)/latest.txt" > /dev/null 2>&1
 else
+	echo ""
 	echo "Couldn't found file 'latest.txt'"
+	echo ""
 	cleanup
 	exit 1
 fi
@@ -269,11 +268,13 @@ CL="$CHANGELOG"
 
 # Check if update is available
 if [[ "$MODVER" == "$VERSION" ]]; then
+	echo ""
     echo "No update available, you're on the latest version."
     cleanup
     exit 0
 fi
 
+echo ""
 echo "New Update available!"
 echo "Version: $VERSION"
 
@@ -291,21 +292,27 @@ case "$pilihan" in
  y)
     echo ""
     echo "Downloading the latest module..."
-    if wget -q "$LINK" -O "$FNAME" 2> /sdcard/update_error.txt; then
-      echo "Done"
-    else
-      echo "Failed."
-      echo "Send the log that located in /sdcard"
-      echo "to https://t.me/gudangtoenixzdisc"
-      cleanup
-      exit 1
-    fi
+    echo ""
+    
+    wget -nv "$LINK" -O "$FNAME"
+    [[ "$?" -eq "0" ]] && {
+    echo ""
+    echo "Done"
+    } || {
+    echo ""
+    echo "Failed."
+    echo "Report this error to @gudangtoenixzdisc"
+    echo ""
+    cleanup
+    exit 1
+    }
 
     echo ""
     echo "Installing the module..."
     echo ""
 
-    if $MGR $ARG "$FNAME" 2> /sdcard/update_error.txt; then
+    $MGR $ARG "$FNAME"
+    [[ "$?" -eq "0" ]] && {
       echo ""
       echo "Cleaning..."
       cleanup
@@ -322,14 +329,15 @@ case "$pilihan" in
             exit 0 ;;
         *)
             echo "Invalid input, use y/n to answer." && exit 1 ;;
-      esac 
-    else
+      esac
+    } || {
+      echo ""
       echo "Failed."
-      echo "Send the log that located in /sdcard"
-      echo "to https://t.me/gudangtoenixzdisc"
+      echo "Report this error to @gudangtoenixzdisc"
+      echo ""
       cleanup
       exit 1
-    fi 
+    }
     ;;
  n)
      cleanup
@@ -341,17 +349,44 @@ case "$pilihan" in
 esac
 }
 
+upload_log() {
+if ! [[ -d "/data/data/com.termux" ]]; then
+	echo "Termux app required."
+	exit 1
+fi
+
+export PATH="/data/data/com.termux/files/usr/bin:$PATH"
+
+if ! which curl > /dev/null 2>&1; then
+	echo "Operation aborted."
+	echo "Hint: pkg install -y curl openssl openssh"
+	exit 1
+fi
+
+debugger
+
+[ "$?" -eq "0" ] && {
+echo "Done"
+}
+}
+
 option_list=(
 "--apply"
 "--remove"
 "--update-module"
+"--upload-log"
 "--help"
 "help"
 )
 
+if [[ "$(whoami)" != "root" ]]; then
+echo "Please run as superuser (SU)"
+exit 1
+fi
+
 case "$1" in
   "--apply")
-    run > /dev/null 2>&1
+    run > /data/ngentouch/ngentouch.log 2>&1
     ;;
   "--remove")
     remove
@@ -361,6 +396,9 @@ case "$1" in
     ;;
   "--help"|"help")
     help_menu
+    ;;
+  "--upload-log")
+  	upload_log
     ;;
   *)
     if [[ -z "$1" ]]; then

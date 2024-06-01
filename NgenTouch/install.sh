@@ -20,6 +20,13 @@ cmd_pkg() {
     fi
 }
 
+[[ -d "/data/ngentouch" ]] && {
+rm -rf /data/ngentouch
+}
+
+mkdir /data/ngentouch
+touch /data/ngentouch/first_boot
+
 ui_print ""
 ui_print "░█▀█░█▀▀░█▀▀░█▀█░▀█▀░█▀█░█░█░█▀▀░█░█
 ░█░█░█░█░█▀▀░█░█░░█░░█░█░█░█░█░░░█▀█
@@ -58,6 +65,14 @@ sleep 1
 extract_files() {
 unzip -o "$ZIPFILE" 'service.sh' -d $MODPATH >&2
 unzip -o "$ZIPFILE" 'system/*' -d $MODPATH >&2
+
+if [[ "$ARCH" != *arm* ]]; then
+ui_print "- Can't install this module for your ARCH"
+ui_print "- Your ARCH is: $ARCH"
+exit 1
+else
+unzip -o "$ZIPFILE" 'debugger' -d $MODPATH/system/bin >&2
+fi
 }
 
 perm() {
