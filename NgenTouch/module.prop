@@ -1,5 +1,5 @@
 id=ngentouch_module
 name=NgenTouch Reworked.
-version=v4.0.2_beta (240604) (240604) (240604)
+version=v4.0.2_beta
 author=eraselk
 description=This module's function is to improve your screen sensitivity and reduce delay. enter 'su -c ntm --help' for more information.
