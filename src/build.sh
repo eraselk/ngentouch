@@ -1,3 +1,4 @@
+set -e
 export PATH="/data/data/com.termux/files/usr/bin:${PATH}"
 VER="$(cat ./module.prop | grep 'version=' | cut -f 2 -d '=' | awk '{print $1}')"
 build_date=$(date +"%y%m%d")
