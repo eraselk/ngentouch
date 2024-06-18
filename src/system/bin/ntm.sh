@@ -5,18 +5,19 @@
 #
 
 run() {
+
 set -x
 
 # Functions that needed by this script.
 write() {
     if [[ -f "$2" ]]; then
-    	echo "$2 is Exists"
+    	echo "$2 Exists"
         if [[ ! -w "$2" ]]; then
             chmod +w "$2"
         fi
         echo "$1" > "$2"
     else
-     	echo "$2 is not exists"
+     	echo "$2 does not exists"
     fi
 }
 
@@ -98,9 +99,13 @@ write "0" "$i/oppo_tp_limit_enable"
 write "0" "$i/oplus_tp_limit_enable"
 write "1" "$i/oplus_tp_direction"
 
+# bump sampling rate
 for boost_sr in "$(find /sys -type f -name bump_sample_rate)"; do
 	if [[ -n "$boost_sr" ]]; then
-		write "1" "$boost_sr"
+	    echo "$boost_sr"
+    for boosts in ${boost_sr[@]}; do
+		write "1" "$boosts"
+    done
 	else
 		echo "can't apply boost_sr"
 	fi
