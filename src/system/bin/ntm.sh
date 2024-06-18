@@ -246,7 +246,7 @@ fi
 echo ""
 
 # Download latest.txt - Important
-wget -nv "https://github.com/bintang774/ngentouch/raw/main/latest.txt"
+wget -nv "https://github.com/eraselk/ngentouch/raw/main/latest.txt"
 [[ "$?" -gt "0" ]] && {
 	echo ""
 	echo "Failed."
