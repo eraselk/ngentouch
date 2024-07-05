@@ -1,5 +1,3 @@
-VER="v4.0.2_stable"
-LINK="https://github.com/eraselk/ngentouch/releases/download/v4.0.2_stable/NgenTouch-v4.0.2_stable-240618130004.zip"
-CHANGELOG="• Menambahkan fitur Auto Package Installer, liat aja nanti.
-• Improvisasi kode.
-• dan lainnya."
+VER="v4.0.3_stable"
+LINK="https://github.com/eraselk/ngentouch/releases/download/v4.0.3_stable/NgenTouch-v4.0.3_stable-240705224930.zip"
+CHANGELOG="• Menghapus debugger (--upload-log)"
