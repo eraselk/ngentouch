@@ -354,32 +354,10 @@ case "$pilihan" in
 esac
 }
 
-upload_log() {
-if ! [[ -d "/data/data/com.termux" ]]; then
-	echo "Termux app required."
-	exit 1
-fi
-
-export PATH="/data/data/com.termux/files/usr/bin:$PATH"
-
-if ! which curl > /dev/null 2>&1; then
-	echo "Operation aborted."
-	echo "Hint: pkg install -y curl openssl openssh"
-	exit 1
-fi
-
-debugger
-
-[ "$?" -eq "0" ] && {
-echo "Done"
-}
-}
-
 option_list=(
 "--apply"
 "--remove"
 "--update-module"
-"--upload-log"
 "--help"
 "help"
 )
@@ -401,9 +379,6 @@ case "$1" in
     ;;
   "--help"|"help")
     help_menu
-    ;;
-  "--upload-log")
-  	upload_log
     ;;
   *)
     if [[ -z "$1" ]]; then
