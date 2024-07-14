@@ -1,5 +1,18 @@
 set -e
-export PATH="/data/data/com.termux/files/usr/bin:${PATH}"
+
+if [ "$(id -u)" -eq "0" ]; then
+    echo 'WARN: Wtf, root?.'
+fi
+
+if ! env | grep 'com.termux' >/dev/null 2>&1; then
+    echo 'WARN: Build using external terminal.'
+    export PATH="/data/data/com.termux/files/usr/bin:${PATH}"
+fi
+
+if ! command -v zip >/dev/null 2>&1; then
+    echo 'Zip is not installed, negro.'
+    exit 1
+fi
 VER="$(cat ./module.prop | grep 'version=' | cut -f 2 -d '=' | awk '{print $1}')"
 build_date=$(date +"%y%m%d")
 stamp=$(date +"%H%M%S")
@@ -11,9 +24,10 @@ zip_name="${module_name}-${VER}-${build_date}${stamp}.zip"
 remove_bak="1"
 #####################################
 
-[[ "$remove_bak" == "1" ]] && {
-	find . -type f -name '*.bak*' -exec rm -f {} +
-} 
+if [ "$remove_bak" = "1" ]; then
+    find . -type f -name '*.bak*' -exec rm -f {} +
+fi
+
 dir="$(pwd)/system/bin"
 mv -f $dir/ntm.sh $dir/ntm
 
