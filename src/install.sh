@@ -32,7 +32,6 @@ mod_print() {
     sleep 1
     cmd_pkg compile -m verify -f com.android.systemui
     cmd_pkg compile -m assume-verified -f com.android.systemui --compile-filter=assume-verified -c --reset
-    sleep 5
     cmd_pkg force-dex-opt com.android.systemui
     cmd_pkg compile -r bg-dexopt -f com.android.systemui
     cmd_pkg compile -m everything -f com.android.systemui
