@@ -4,6 +4,25 @@
 # You can steal/modify/copy any codes in this script without any credits.
 #
 
+normal_method=0
+another_method=0
+
+setput() {
+    if [ $another_method -eq 1 ]; then
+        su -lp 2000 -c "settings put $1 $2 $3" # Experimental
+    elif [ $normal_method -eq 1 ]; then
+        settings put $1 $2 $3
+    fi
+}
+
+setget() {
+    if [ $another_method -eq 1 ]; then
+        su -lp 2000 -c "settings get $1 $2" # Experimental
+    elif [ $normal_method -eq 1 ]; then
+        settings get $1 $2
+    fi
+}
+
 run() {
 
     # Functions that needed by this script.
@@ -13,12 +32,6 @@ run() {
                 chmod +w "$2"
             fi
             echo "$1" >"$2"
-        fi
-    }
-
-    setput() {
-        if ! settings put $1 $2 $3; then
-            su -lp 2000 -c "settings put $1 $2 $3" # Experimental
         fi
     }
 
@@ -75,7 +88,7 @@ run() {
     set_prop touch.gestureMode spots
     set_prop ro.surface_flinger.max_frame_buffer_acquired_buffers 3
     set_prop debug.input.normalizetouch true
-    
+
     if cat /proc/cpuinfo | grep "Hardware" | uniq | cut -d ":" -f 2 | grep 'Qualcomm'; then
         set_prop persist.vendor.qti.inputopts.movetouchslop 0.1
         set_prop persist.vendor.qti.inputopts.enable true
@@ -85,13 +98,17 @@ run() {
     setput secure long_press_timeout 200
     setput global block_untrusted_touches 0
     setput system pointer_speed 7
-    
+
     edge="$(settings list system | grep "edge_*" | cut -f1 -d '=')"
-    
+
     for row in ${edge[@]}; do
         setput system $row 0
     done
-    
+
+    # Maybe gimmick
+    setput system high_touch_polling_rate_enable 1
+    setput system high_touch_sensitivity_enable 1
+
     i="/proc/touchpanel"
     write "1" "$i/game_switch_enable"
     write "1" "$i/oppo_tp_direction"
@@ -134,14 +151,16 @@ run() {
 
 remove() {
     (
-        settings put system pointer_speed -7
-        settings put secure multi_press_timeout 500
-        settings put secure long_press_timeout 500
-        settings put global block_untrusted_touches 1
+        settings delete system pointer_speed
+        settings delete secure multi_press_timeout
+        settings delete secure long_press_timeout
+        settings delete global block_untrusted_touches
         edge="$(settings list system | grep "edge_*" | cut -f1 -d '=')"
         for row in ${edge[@]}; do
-            settings put system $row 1
+            settings delete system $row
         done
+        settings delete system high_touch_polling_rate_enable
+        settings delete system high_touch_sensitivity_enable
         cmd package compile -m verify -f com.android.systemui
         cmd package compile -m assume-verified -f com.android.systemui --compile-filter=assume-verified -c --reset
         rm -rf /data/dalvik-cache/*
@@ -191,7 +210,7 @@ update_module() {
         fi
 
     fi
-    
+
     if command -v /data/data/com.termux/files/usr/bin/wget >/dev/null 2>&1; then
         WGET="/data/data/com.termux/files/usr/bin/wget"
     fi
