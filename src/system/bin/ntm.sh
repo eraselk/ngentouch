@@ -17,11 +17,9 @@ run() {
     }
 
     setput() {
-        db="$1"
-        row="$2"
-        value="$3"
-
-        settings put "$db" "$row" "$value"
+        if ! settings put $1 $2 $3; then
+            su -lp 2000 -c "settings put $1 $2 $3" # Experimental
+        fi
     }
 
     ps_ret="$(ps -Ao pid,args)"
@@ -76,8 +74,9 @@ run() {
     set_prop touch.coverage.calibration box
     set_prop touch.gestureMode spots
     set_prop ro.surface_flinger.max_frame_buffer_acquired_buffers 3
-
-    if cat /proc/cpuinfo | grep "Hardware" | uniq | cut -d ":" -f 2 | grep 'Qualcomm' 2>&1 >/dev/null; then
+    set_prop debug.input.normalizetouch true
+    
+    if cat /proc/cpuinfo | grep "Hardware" | uniq | cut -d ":" -f 2 | grep 'Qualcomm'; then
         set_prop persist.vendor.qti.inputopts.movetouchslop 0.1
         set_prop persist.vendor.qti.inputopts.enable true
     fi
@@ -86,7 +85,13 @@ run() {
     setput secure long_press_timeout 200
     setput global block_untrusted_touches 0
     setput system pointer_speed 7
-
+    
+    edge="$(settings list system | grep "edge_*" | cut -f1 -d '=')"
+    
+    for row in ${edge[@]}; do
+        setput system $row 0
+    done
+    
     i="/proc/touchpanel"
     write "1" "$i/game_switch_enable"
     write "1" "$i/oppo_tp_direction"
@@ -130,9 +135,13 @@ run() {
 remove() {
     (
         settings put system pointer_speed -7
-        settings delete secure multi_press_timeout
-        settings delete secure long_press_timeout
-        settings delete global block_untrusted_touches
+        settings put secure multi_press_timeout 500
+        settings put secure long_press_timeout 500
+        settings put global block_untrusted_touches 1
+        edge="$(settings list system | grep "edge_*" | cut -f1 -d '=')"
+        for row in ${edge[@]}; do
+            settings put system $row 1
+        done
         cmd package compile -m verify -f com.android.systemui
         cmd package compile -m assume-verified -f com.android.systemui --compile-filter=assume-verified -c --reset
         rm -rf /data/dalvik-cache/*
@@ -364,7 +373,7 @@ option_list=(
     "help"
 )
 
-if [ ! "$(id -u)" -eq "0" ]; then
+if ! [ $(id -u) -eq 0 ]; then
     echo "Please run as superuser (SU)"
     exit 1
 fi
