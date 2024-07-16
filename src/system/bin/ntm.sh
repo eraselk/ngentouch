@@ -134,7 +134,8 @@ run() {
     write "14005" /sys/class/touch/switch/set_touchscreen
     write "enable 1" /proc/perfmgr/tchbst/user/usrtch
     write "1" /proc/perfmgr/tchbst/kernel/tb_enable
-
+    write "1" /sys/devices/virtual/touch/touch_boost
+    
     # Input Dispatcher/Reader
     change_thread_nice "system_server" "InputReader" "-20"
     change_thread_nice "system_server" "InputDispatcher" "-20"
