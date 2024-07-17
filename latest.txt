@@ -1,3 +1,4 @@
 VER="v4.0.3_stable"
+VERCODE="403"
 LINK="https://github.com/eraselk/ngentouch/releases/download/v4.0.3_stable/NgenTouch-v4.0.3_stable-240705224930.zip"
 CHANGELOG="• Menghapus debugger (--upload-log)"
