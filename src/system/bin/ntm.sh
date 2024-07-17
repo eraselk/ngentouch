@@ -101,16 +101,21 @@ run() {
     write "1" /proc/perfmgr/tchbst/kernel/tb_enable
     write "1" /sys/devices/virtual/touch/touch_boost
 
-    # Input Dispatcher/Reader
-    input_reader_pid=$(ps -A -T -p $(pidof -s system_server) -o tid,cmd | grep 'InputReader' | awk '{print $1}')
-    input_dispatcher_pid=$(ps -A -T -p $(pidof -s system_server) -o tid,cmd | grep 'InputDispatcher' | awk '{print $1}')
-
+    # InputDispatcher, InputReader, and Android UI Tweaks
+    systemserver_pid=$(pidof -s system_server)
+    input_reader_pid=$(ps -A -T -p $systemserver_pid -o tid,cmd | grep 'InputReader' | awk '{print $1}')
+    input_dispatcher_pid=$(ps -A -T -p $systemserver_pid -o tid,cmd | grep 'InputDispatcher' | awk '{print $1}')
+    android_ui_pid=$(ps -A -T -p $systemserver_pid -o tid,cmd | grep 'android.ui' | awk '{print $1}')
+    
     renice -n -20 -p $input_reader_pid
     renice -n -20 -p $input_dispatcher_pid
 
-    chrt -f -p 99 $input_reader_pid
-    chrt -f -p 99 $input_dispatcher_pid
+    chrt -r -p 99 $input_reader_pid
+    chrt -r -p 99 $input_dispatcher_pid
 
+    renice -n -20 -p $android_ui_pid
+    chrt -r -p 99 $android_ui_pid
+    
     # always return success
     true
 }
