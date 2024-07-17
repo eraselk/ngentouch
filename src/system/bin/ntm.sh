@@ -84,12 +84,10 @@ run() {
     write "1" "$i/oplus_tp_direction"
 
     # bump sampling rate
-    for boost_sr in "$(find /sys -type f -name bump_sample_rate)"; do
-        if [ -n "$boost_sr" ]; then
+    find /sys -type f -name bump_sample_rate | while read -r boost_sr; do
             for boosts in ${boost_sr[@]}; do
                 write "1" "$boosts"
             done
-        fi
     done
 
     write "1" /sys/module/msm_performance/parameters/touchboost
