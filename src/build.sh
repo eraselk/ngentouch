@@ -15,6 +15,7 @@ fi
 VER="$(cat ./module.prop | grep 'version=' | cut -f 2 -d '=' | awk '{print $1}')"
 build_date=$(date +"%y%m%d")
 stamp=$(date +"%H%M%S")
+sed -i "s/version=.*/version=$VER.${build_date}${stamp}/g" ./module.prop
 
 ######################################
 module_name="NgenTouch"
@@ -35,3 +36,4 @@ zip -r9 "$zip_name" * -x build.sh*
 mv -f ./"$zip_name" ..
 
 mv -f $dir/ntm $dir/ntm.sh
+sed -i "s/version=.*/version=$VER/g" ./module.prop
