@@ -160,10 +160,12 @@ update_module() {
 
         if [ -n "$BB" ]; then
             echo "OK"
+            echo
             WGET="$BB wget"
             echo "Testing wget..."
             if $WGET --help >/dev/null 2>&1; then
                 echo "OK"
+                echo
             else
                 echo "ERROR: The busybox doesn't have wget applet!"
                 exit 1
@@ -230,55 +232,76 @@ update_module() {
         exit 1
     fi
 
+    echo
+
     # Download latest.txt
-    $WGET "https://github.com/eraselk/ngentouch/raw/main/latest.txt" -O latest.txt >/dev/null 2>&1
+    $WGET "https://github.com/eraselk/ngentouch/raw/eraselk-patch-1/latest.txt" -O latest.txt >/dev/null 2>&1
 
     # Import variables from latest.txt
     if [ -f "latest.txt" ]; then
         source latest.txt
     else
         echo "Couldn't find file 'latest.txt'"
+        echo
         cleanup
         exit 1
     fi
 
+    echo
+
+    VERSION="$VER"
+    VERSIONCODE="$VERCODE"
+    CL="$CHANGELOG"
+    
     # Check for updates
     if [ "$MODVER" = "$VERSION" ] && [ "$VERSIONCODE" -eq "$MODVERCODE" ]; then
         echo "No update available, you're on the latest version."
+        echo
         cleanup
         exit 0
     elif [ "$MODVER" != "$VERSION" ] && [ "$VERSIONCODE" -lt "$MODVERCODE" ]; then
         echo "You're on the Beta version. Please wait for the stable version."
+        echo
         cleanup
         exit 0
     elif [ "$MODVER" != "$VERSION" ] && [ "$VERSIONCODE" -gt "$MODVERCODE" ]; then
         echo "New Update available!"
         echo "Version: $VERSION"
-        [ -n "$CL" ] && echo "--- Changelog ---" && echo "$CL"
+        echo
+        [ -n "$CL" ] && echo "--- Changelog ---" && echo "$CL" && echo
         
-        echo "Download and Install? [y/n]"
+        echo -n "Download and Install? [y/n]"
+        echo -n ": "
         read -r pilihan
 
         case "$pilihan" in
             y|Y)
+                echo
                 echo "Downloading the latest module..."
                 $WGET "$LINK" -O "$FNAME" >/dev/null 2>&1 && echo "Done" || { echo "Failed."; cleanup; exit 1; }
 
+                echo
                 echo "Installing the module..."
+                echo
                 $MGR $ARG "$FNAME" && {
+                    echo
                     cleanup
                     echo "Done"
-                    echo "Reboot now? [y/n]"
+                    echo
+                    echo -n "Reboot now? [y/n]"
+                    echo -n ": "
                     read -r choice
                     case "$choice" in
                         y|Y) reboot ;;
                         n|N) exit 0 ;;
                         *) echo "Invalid input, use y/n to answer." && exit 1 ;;
                     esac
-                } || { echo "Failed."; cleanup; exit 1; }
+                } || { echo; echo "Failed."; cleanup; exit 1; }
                 ;;
             n|N) cleanup; exit 0 ;;
-            *) echo "Invalid input, use y/n to answer."; cleanup; exit 1 ;;
+            *)
+                echo
+                echo "Invalid input, use y/n to answer."; cleanup; exit 1 ;;
         esac
     fi
 }
