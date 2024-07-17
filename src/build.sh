@@ -1,16 +1,15 @@
 set -e
 
-if [ "$(id -u)" -eq "0" ]; then
-    echo 'WARN: Wtf, root?.'
-fi
-
 if ! env | grep 'com.termux' >/dev/null 2>&1; then
-    echo 'WARN: Build using external terminal.'
+    echo 'WARN: Build using external terminal, maybe zipping not succeded?'
+    echo 'Hint: Run as root, if zipping not succeded.'
+    echo
     export PATH="/data/data/com.termux/files/usr/bin:${PATH}"
 fi
 
 if ! command -v zip >/dev/null 2>&1; then
     echo 'Zip is not installed, negro.'
+    echo
     exit 1
 fi
 VER="$(cat ./module.prop | grep 'version=' | cut -f 2 -d '=' | awk '{print $1}')"
