@@ -197,7 +197,7 @@ update_module() {
     MODVER="$(grep 'version=' /data/adb/modules/ngentouch_module/module.prop | cut -f 2 -d '=')"
 
     # Declare module versionCode
-    MODVERCODE="$(grep 'versionCode=' /data/adb/modules/ngentouch_modules/module.prop | cut -f 2 -d '=')"
+    MODVERCODE="$(grep 'versionCode=' /data/adb/modules/ngentouch_module/module.prop | cut -f 2 -d '=')"
 
     # Setup Daemon's variable
     KASU="/data/adb/ksu/bin/ksud"
