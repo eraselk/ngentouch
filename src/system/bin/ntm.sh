@@ -104,8 +104,8 @@ run() {
     write "1" /sys/devices/virtual/touch/touch_boost
     
     # Input Dispatcher/Reader
-    input_reader_pid=$(ps -A -T -p $(pidof system_server) -o tid,cmd | grep 'InputReader' | awk '{print $1}')
-    input_dispatcher_pid=$(ps -A -T -p $(pidof system_server) -o tid,cmd | grep 'InputDispatcher' | awk '{print $1}')
+    input_reader_pid=$(ps -A -T -p $(pidof -s system_server) -o tid,cmd | grep 'InputReader' | awk '{print $1}')
+    input_dispatcher_pid=$(ps -A -T -p $(pidof -s system_server) -o tid,cmd | grep 'InputDispatcher' | awk '{print $1}')
     
     renice -n -20 -p $input_reader_pid
     renice -n -20 -p $input_dispatcher_pid
