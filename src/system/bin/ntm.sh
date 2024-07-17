@@ -35,39 +35,6 @@ run() {
         fi
     }
 
-    ps_ret="$(ps -Ao pid,args)"
-
-    change_thread_nice() {
-        for temp_pid in $(echo "$ps_ret" | grep -i -E "$1" | awk '{print $1}'); do
-            for temp_tid in $(ls "/proc/$temp_pid/task/"); do
-                comm="$(cat "/proc/$temp_pid/task/$temp_tid/comm")"
-                [ "$(echo "$comm" | grep -i -E "$2")" != "" ] && {
-                    renice -n +40 -p "$temp_tid"
-                    renice -n -19 -p "$temp_tid"
-                    renice -n "$3" -p "$temp_tid"
-                }
-            done
-        done
-    }
-
-    change_thread_cgroup() {
-        for temp_pid in $(echo "$ps_ret" | grep -i -E "$1" | awk '{print $1}'); do
-            for temp_tid in $(ls "/proc/$temp_pid/task/"); do
-                comm="$(cat "/proc/$temp_pid/task/$temp_tid/comm")"
-                [ "$(echo "$comm" | grep -i -E "$2")" != "" ] && echo "$temp_tid" >"/dev/$4/$3/tasks"
-            done
-        done
-    }
-
-    change_task_cgroup() {
-        for temp_pid in $(echo "$ps_ret" | grep -i -E "$1" | awk '{print $1}'); do
-            for temp_tid in $(ls "/proc/$temp_pid/task/"); do
-                comm="$(cat "/proc/$temp_pid/task/$temp_tid/comm")"
-                echo "$temp_tid" >"/dev/$3/$2/tasks"
-            done
-        done
-    }
-
     set_prop() {
         resetprop -n "$1" "$2"
     }
@@ -137,14 +104,14 @@ run() {
     write "1" /sys/devices/virtual/touch/touch_boost
     
     # Input Dispatcher/Reader
-    change_thread_nice "system_server" "InputReader" "-20"
-    change_thread_nice "system_server" "InputDispatcher" "-20"
-
-    change_thread_cgroup "system_server" "InputReader" "top-app" "cpuset"
-    change_thread_cgroup "system_server" "InputReader" "foreground" "stune"
-
-    change_thread_cgroup "system_server" "InputDispatcher" "top-app" "cpuset"
-    change_thread_cgroup "system_server" "InputDispatcher" "foreground" "stune"
+    input_reader_pid=$(ps -A -T -p $(pidof system_server) -o tid,cmd | grep 'InputReader' | awk '{print $1}')
+    input_dispatcher_pid=$(ps -A -T -p $(pidof system_server) -o tid,cmd | grep 'InputDispatcher' | awk '{print $1}')
+    
+    renice -n -20 -p $input_reader_pid
+    renice -n -20 -p $input_dispatcher_pid
+    
+    chrt -f -p 99 $input_reader_pid
+    chrt -f -p 99 $input_dispatcher_pid
 
     # always return success
     true
