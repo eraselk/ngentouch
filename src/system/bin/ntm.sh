@@ -85,9 +85,9 @@ run() {
 
     # bump sampling rate
     find /sys -type f -name bump_sample_rate | while read -r boost_sr; do
-            for boosts in ${boost_sr[@]}; do
-                write "1" "$boosts"
-            done
+        for boosts in ${boost_sr[@]}; do
+            write "1" "$boosts"
+        done
     done
 
     write "1" /sys/module/msm_performance/parameters/touchboost
@@ -100,14 +100,14 @@ run() {
     write "enable 1" /proc/perfmgr/tchbst/user/usrtch
     write "1" /proc/perfmgr/tchbst/kernel/tb_enable
     write "1" /sys/devices/virtual/touch/touch_boost
-    
+
     # Input Dispatcher/Reader
     input_reader_pid=$(ps -A -T -p $(pidof -s system_server) -o tid,cmd | grep 'InputReader' | awk '{print $1}')
     input_dispatcher_pid=$(ps -A -T -p $(pidof -s system_server) -o tid,cmd | grep 'InputDispatcher' | awk '{print $1}')
-    
+
     renice -n -20 -p $input_reader_pid
     renice -n -20 -p $input_dispatcher_pid
-    
+
     chrt -f -p 99 $input_reader_pid
     chrt -f -p 99 $input_dispatcher_pid
 
@@ -145,7 +145,7 @@ Usage: ntm [OPTION]
 
 --apply         	Apply touch tweaks [SERVICE MODE]
 --remove                Remove NgenTouch module
---update-module         Update NgenTouch module [WGET REQUIRED]
+--update                Update NgenTouch module [WGET REQUIRED]
 --help, help            Show this message
 
 Bug or error reports, feature requests, discussions: https://t.me/gudangtoenixzdisc.
@@ -196,6 +196,9 @@ update_module() {
     # Declare module version
     MODVER="$(grep 'version=' /data/adb/modules/ngentouch_module/module.prop | cut -f 2 -d '=')"
 
+    # Declare module versionCode
+    MODVERCODE="$(grep 'versionCode=' /data/adb/modules/ngentouch_modules/module.prop | cut -f 2 -d '=')"
+
     # Setup Daemon's variable
     KASU="/data/adb/ksu/bin/ksud"
     APCH="/data/adb/ap/bin/apd"
@@ -243,7 +246,7 @@ update_module() {
         echo "[ ! ] No internet connection"
         exit 1
     fi
-    echo ""
+    echo
 
     # Download latest.txt - Important
     $WGET "https://github.com/eraselk/ngentouch/raw/main/latest.txt" >/dev/null 2>&1
@@ -252,108 +255,119 @@ update_module() {
     if [ -f "latest.txt" ]; then
         source latest.txt
     else
-        echo ""
+        echo
         echo "Couldn't found file 'latest.txt'"
-        echo ""
+        echo
         cleanup
         exit 1
     fi
 
     VERSION="$VER"
     CL="$CHANGELOG"
+    VERSIONCODE="$VERCODE"
+
+    # $MODVER means the Module's version (strings)
+    # $MODVERCODE means the Module's versionCode (number)
+    # $VERSION means the module source's version (strings)
+    # $VERSIONCODE means the module source's version (number)
 
     # Check if update is available
-    if [ "$MODVER" = "$VERSION" ]; then
-        echo ""
+    if [ "$MODVER" = "$VERSION" ] && [ "$VERSIONCODE" -eq "$MODVERCODE" ]; then
+        echo
         echo "No update available, you're on the latest version."
         cleanup
         exit 0
-    fi
-
-    echo ""
-    echo "New Update available!"
-    echo "Version: $VERSION"
-
-    if [ -n "$CL" ]; then
-        echo ""
-        echo "--- Changelog ---"
-        echo "$CL"
-    fi
-
-    echo ""
-    echo "Download and Install? [y/n]"
-    echo -n ": "
-    read -r pilihan
-
-    case "$pilihan" in
-    y)
-        echo ""
-        echo "Downloading the latest module..."
-        echo ""
-
-        $WGET "$LINK" -O "$FNAME" >/dev/null 2>&1 && {
-            echo ""
-            echo "Done"
-        } || {
-            echo ""
-            echo "Failed."
-            echo "Report this error to @gudangtoenixzdisc"
-            echo ""
-            cleanup
-            exit 1
-        }
-
-        echo ""
-        echo "Installing the module..."
-        echo ""
-
-        $MGR $ARG "$FNAME" && {
-            echo ""
-            echo "Cleaning..."
-            cleanup
-            echo "Done"
-
-            echo ""
-            echo "Reboot now? [y/n]"
-            echo -n ": "
-            read -r choice
-
-            case "$choice" in
-            y)
-                reboot
-                ;;
-            n)
-                exit 0
-                ;;
-            *)
-                echo "Invalid input, use y/n to answer." && exit 1
-                ;;
-            esac
-        } || {
-            echo ""
-            echo "Failed."
-            echo "Report this error to @gudangtoenixzdisc"
-            echo ""
-            cleanup
-            exit 1
-        }
-        ;;
-    n)
+    elif [ "$MODVER" != "$VERSION" ] && [ "$VERSIONCODE" -lt "$MODVERCODE" ]; then
+        echo
+        echo "You're on the Beta version. Please wait for the stable version."
         cleanup
         exit 0
-        ;;
-    *)
-        echo "Invalid input, use y/n to answer."
-        cleanup
-        exit 1
-        ;;
-    esac
+    fi
+
+    if [ "$MODVER" != "$VERSION" ] && [ "$VERSIONCODE" -gt "$MODVERCODE" ]; then
+        echo
+        echo "New Update available!"
+        echo "Version: $VERSION"
+
+        if [ -n "$CL" ]; then
+            echo
+            echo "--- Changelog ---"
+            echo "$CL"
+        fi
+
+        echo
+        echo "Download and Install? [y/n]"
+        echo -n ": "
+        read -r pilihan
+
+        case "$pilihan" in
+        y)
+            echo
+            echo "Downloading the latest module..."
+            echo
+
+            $WGET "$LINK" -O "$FNAME" >/dev/null 2>&1 && {
+                echo "Done"
+            } || {
+                echo "Failed."
+                echo "Report this error to @gudangtoenixzdisc"
+                echo
+                cleanup
+                exit 1
+            }
+
+            echo
+            echo "Installing the module..."
+            echo
+
+            $MGR $ARG "$FNAME" && {
+                echo
+                echo "Cleaning..."
+                cleanup
+                echo "Done"
+
+                echo
+                echo "Reboot now? [y/n]"
+                echo -n ": "
+                read -r choice
+
+                case "$choice" in
+                y)
+                    reboot
+                    ;;
+                n)
+                    exit 0
+                    ;;
+                *)
+                    echo "Invalid input, use y/n to answer." && exit 1
+                    ;;
+                esac
+            } || {
+                echo
+                echo "Failed."
+                echo "Report this error to @gudangtoenixzdisc"
+                echo
+                cleanup
+                exit 1
+            }
+            ;;
+        n)
+            cleanup
+            exit 0
+            ;;
+        *)
+            echo "Invalid input, use y/n to answer."
+            cleanup
+            exit 1
+            ;;
+        esac
+    fi
 }
 
 option_list=(
     "--apply"
     "--remove"
-    "--update-module"
+    "--update"
     "--help"
     "help"
 )
@@ -370,7 +384,7 @@ case "$1" in
 "--remove")
     remove
     ;;
-"--update-module")
+"--update")
     update_module
     ;;
 "--help" | "help")
