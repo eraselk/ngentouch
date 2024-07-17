@@ -153,19 +153,17 @@ EOF
 }
 
 update_module() {
-
+    # Check if 'com.termux' package and wget are installed
     if ! cmd package -l | grep 'com.termux' >/dev/null 2>&1 || ! command -v /data/data/com.termux/files/usr/bin/wget >/dev/null 2>&1; then
         echo "Searching BusyBox binary in /data/adb..."
         BB="$(find /data/adb -type f -name busybox | head -n1)"
 
         if [ -n "$BB" ]; then
             echo "OK"
-            echo
             WGET="$BB wget"
             echo "Testing wget..."
-            if command -v $WGET >/dev/null 2>&1; then
+            if $WGET --help >/dev/null 2>&1; then
                 echo "OK"
-                echo
             else
                 echo "ERROR: The busybox doesn't have wget applet!"
                 exit 1
@@ -174,66 +172,51 @@ update_module() {
             echo "ERROR: Can't find busybox binary!"
             exit 1
         fi
-
-    fi
-
-    if command -v /data/data/com.termux/files/usr/bin/wget >/dev/null 2>&1; then
+    else
         WGET="/data/data/com.termux/files/usr/bin/wget"
     fi
 
     cd /sdcard
 
-    # Detect ARCH
+    # Detect architecture
     ARCH=""
-    if [ "$(getprop ro.product.cpu.abi)" = "arm64-v8a" ]; then
-        ARCH="64"
-    fi
-
-    if [ "$(getprop ro.product.cpu.abi)" = "armeabi-v7a" ]; then
-        ARCH="32"
-    fi
+    case "$(getprop ro.product.cpu.abi)" in
+        arm64-v8a) ARCH="64" ;;
+        armeabi-v7a) ARCH="32" ;;
+    esac
 
     # Declare module version
-    MODVER="$(grep 'version=' /data/adb/modules/ngentouch_module/module.prop | cut -f 2 -d '=')"
+    MODVER="$(grep 'version=' /data/adb/modules/ngentouch_module/module.prop | cut -d '=' -f 2)"
+    MODVERCODE="$(grep 'versionCode=' /data/adb/modules/ngentouch_module/module.prop | cut -d '=' -f 2)"
 
-    # Declare module versionCode
-    MODVERCODE="$(grep 'versionCode=' /data/adb/modules/ngentouch_module/module.prop | cut -f 2 -d '=')"
-
-    # Setup Daemon's variable
+    # Setup daemon's variables
     KASU="/data/adb/ksu/bin/ksud"
     APCH="/data/adb/ap/bin/apd"
     MAGISK="/data/adb/magisk/magisk${ARCH}"
 
-    # FNAME Variable - zip name
+    # Filename variable - zip name
     FNAME="ngentouch.zip"
 
     # Cleanup function
     cleanup() {
-        find . -maxdepth 1 -type f -name $FNAME -exec rm -f {} +
+        find . -maxdepth 1 -type f -name "$FNAME" -exec rm -f {} +
         find . -maxdepth 1 -type f -name '*latest*' -exec rm -f {} +
     }
 
     # Clean unnecessary files
     cleanup
 
-    # Set up $MGR and $ARG variable
+    # Set up $MGR and $ARG variables
     MGR=""
     ARG=""
 
-    # KernelSU
     if [ -f "$KASU" ]; then
         MGR="$KASU"
         ARG="module install"
-    fi
-
-    # Apatch
-    if [ -f "$APCH" ]; then
+    elif [ -f "$APCH" ]; then
         MGR="$APCH"
         ARG="module install"
-    fi
-
-    # Magisk
-    if [ -f "$MAGISK" ]; then
+    elif [ -f "$MAGISK" ]; then
         MGR="$MAGISK"
         ARG="--install-module"
     fi
@@ -246,120 +229,56 @@ update_module() {
         echo "[ ! ] No internet connection"
         exit 1
     fi
-    echo
 
-    # Download latest.txt - Important
-    $WGET "https://github.com/eraselk/ngentouch/raw/main/latest.txt" >/dev/null 2>&1
+    # Download latest.txt
+    $WGET "https://github.com/eraselk/ngentouch/raw/main/latest.txt" -O latest.txt >/dev/null 2>&1
 
     # Import variables from latest.txt
     if [ -f "latest.txt" ]; then
         source latest.txt
     else
-        echo
-        echo "Couldn't found file 'latest.txt'"
-        echo
+        echo "Couldn't find file 'latest.txt'"
         cleanup
         exit 1
     fi
 
-    VERSION="$VER"
-    CL="$CHANGELOG"
-    VERSIONCODE="$VERCODE"
-
-    # $MODVER means the Module's version (strings)
-    # $MODVERCODE means the Module's versionCode (number)
-    # $VERSION means the module source's version (strings)
-    # $VERSIONCODE means the module source's version (number)
-
-    # Check if update is available
+    # Check for updates
     if [ "$MODVER" = "$VERSION" ] && [ "$VERSIONCODE" -eq "$MODVERCODE" ]; then
-        echo
         echo "No update available, you're on the latest version."
         cleanup
         exit 0
     elif [ "$MODVER" != "$VERSION" ] && [ "$VERSIONCODE" -lt "$MODVERCODE" ]; then
-        echo
         echo "You're on the Beta version. Please wait for the stable version."
         cleanup
         exit 0
-    fi
-
-    if [ "$MODVER" != "$VERSION" ] && [ "$VERSIONCODE" -gt "$MODVERCODE" ]; then
-        echo
+    elif [ "$MODVER" != "$VERSION" ] && [ "$VERSIONCODE" -gt "$MODVERCODE" ]; then
         echo "New Update available!"
         echo "Version: $VERSION"
-
-        if [ -n "$CL" ]; then
-            echo
-            echo "--- Changelog ---"
-            echo "$CL"
-        fi
-
-        echo
+        [ -n "$CL" ] && echo "--- Changelog ---" && echo "$CL"
+        
         echo "Download and Install? [y/n]"
-        echo -n ": "
         read -r pilihan
 
         case "$pilihan" in
-        y)
-            echo
-            echo "Downloading the latest module..."
-            echo
+            y|Y)
+                echo "Downloading the latest module..."
+                $WGET "$LINK" -O "$FNAME" >/dev/null 2>&1 && echo "Done" || { echo "Failed."; cleanup; exit 1; }
 
-            $WGET "$LINK" -O "$FNAME" >/dev/null 2>&1 && {
-                echo "Done"
-            } || {
-                echo "Failed."
-                echo "Report this error to @gudangtoenixzdisc"
-                echo
-                cleanup
-                exit 1
-            }
-
-            echo
-            echo "Installing the module..."
-            echo
-
-            $MGR $ARG "$FNAME" && {
-                echo
-                echo "Cleaning..."
-                cleanup
-                echo "Done"
-
-                echo
-                echo "Reboot now? [y/n]"
-                echo -n ": "
-                read -r choice
-
-                case "$choice" in
-                y)
-                    reboot
-                    ;;
-                n)
-                    exit 0
-                    ;;
-                *)
-                    echo "Invalid input, use y/n to answer." && exit 1
-                    ;;
-                esac
-            } || {
-                echo
-                echo "Failed."
-                echo "Report this error to @gudangtoenixzdisc"
-                echo
-                cleanup
-                exit 1
-            }
-            ;;
-        n)
-            cleanup
-            exit 0
-            ;;
-        *)
-            echo "Invalid input, use y/n to answer."
-            cleanup
-            exit 1
-            ;;
+                echo "Installing the module..."
+                $MGR $ARG "$FNAME" && {
+                    cleanup
+                    echo "Done"
+                    echo "Reboot now? [y/n]"
+                    read -r choice
+                    case "$choice" in
+                        y|Y) reboot ;;
+                        n|N) exit 0 ;;
+                        *) echo "Invalid input, use y/n to answer." && exit 1 ;;
+                    esac
+                } || { echo "Failed."; cleanup; exit 1; }
+                ;;
+            n|N) cleanup; exit 0 ;;
+            *) echo "Invalid input, use y/n to answer."; cleanup; exit 1 ;;
         esac
     fi
 }
