@@ -183,8 +183,8 @@ update_module() {
     # Detect architecture
     ARCH=""
     case "$(getprop ro.product.cpu.abi)" in
-        arm64-v8a) ARCH="64" ;;
-        armeabi-v7a) ARCH="32" ;;
+    arm64-v8a) ARCH="64" ;;
+    armeabi-v7a) ARCH="32" ;;
     esac
 
     # Declare module version
@@ -252,7 +252,7 @@ update_module() {
     VERSION="$VER"
     VERSIONCODE="$VERCODE"
     CL="$CHANGELOG"
-    
+
     # Check for updates
     if [ "$MODVER" = "$VERSION" ] && [ "$VERSIONCODE" -eq "$MODVERCODE" ]; then
         echo "No update available, you're on the latest version."
@@ -269,39 +269,54 @@ update_module() {
         echo "Version: $VERSION"
         echo
         [ -n "$CL" ] && echo "--- Changelog ---" && echo "$CL" && echo
-        
+
         echo -n "Download and Install? [y/n]"
         echo -n ": "
         read -r pilihan
 
         case "$pilihan" in
-            y|Y)
-                echo
-                echo "Downloading the latest module..."
-                $WGET "$LINK" -O "$FNAME" >/dev/null 2>&1 && echo "Done" || { echo "Failed."; cleanup; exit 1; }
+        y | Y)
+            echo
+            echo "Downloading the latest module..."
+            $WGET "$LINK" -O "$FNAME" >/dev/null 2>&1 && echo "Done" || {
+                echo "Failed."
+                cleanup
+                exit 1
+            }
 
+            echo
+            echo "Installing the module..."
+            echo
+            $MGR $ARG "$FNAME" && {
                 echo
-                echo "Installing the module..."
+                cleanup
+                echo "Done"
                 echo
-                $MGR $ARG "$FNAME" && {
-                    echo
-                    cleanup
-                    echo "Done"
-                    echo
-                    echo -n "Reboot now? [y/n]"
-                    echo -n ": "
-                    read -r choice
-                    case "$choice" in
-                        y|Y) reboot ;;
-                        n|N) exit 0 ;;
-                        *) echo "Invalid input, use y/n to answer." && exit 1 ;;
-                    esac
-                } || { echo; echo "Failed."; cleanup; exit 1; }
-                ;;
-            n|N) cleanup; exit 0 ;;
-            *)
+                echo -n "Reboot now? [y/n]"
+                echo -n ": "
+                read -r choice
+                case "$choice" in
+                y | Y) reboot ;;
+                n | N) exit 0 ;;
+                *) echo "Invalid input, use y/n to answer." && exit 1 ;;
+                esac
+            } || {
                 echo
-                echo "Invalid input, use y/n to answer."; cleanup; exit 1 ;;
+                echo "Failed."
+                cleanup
+                exit 1
+            }
+            ;;
+        n | N)
+            cleanup
+            exit 0
+            ;;
+        *)
+            echo
+            echo "Invalid input, use y/n to answer."
+            cleanup
+            exit 1
+            ;;
         esac
     fi
 }
