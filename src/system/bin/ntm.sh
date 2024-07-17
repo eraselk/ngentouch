@@ -139,7 +139,7 @@ remove() {
 help_menu() {
     cat <<EOF
 NgenTouch Module Manager
-Version $(cat /data/adb/modules/ngentouch_module/module.prop | grep 'version=' | cut -f 2 -d '=')
+Version $(cat /data/adb/modules/ngentouch_module/module.prop | grep 'version=' | cut -f 2 -d '=' | sed 's/v//g')
 
 Usage: ntm [OPTION]
 
