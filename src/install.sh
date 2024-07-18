@@ -8,7 +8,7 @@ SKIPMOUNT=false
 PROPFILE=false
 POSTFSDATA=false
 LATESTARTSERVICE=true
-dbg=1
+dbg=0
 
 mod_print() {
 
