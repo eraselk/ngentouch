@@ -238,7 +238,7 @@ update_module() {
     echo
 
     # Download latest.txt
-    $WGET "https://github.com/eraselk/ngentouch/raw/eraselk-patch-1/latest.txt" -O latest.txt >/dev/null 2>&1
+    $WGET "https://github.com/eraselk/ngentouch/raw/main/latest.txt" -O latest.txt >/dev/null 2>&1
 
     # Import variables from latest.txt
     if [ -f "latest.txt" ]; then
