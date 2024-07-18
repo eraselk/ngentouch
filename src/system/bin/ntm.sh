@@ -102,19 +102,17 @@ run() {
     write "1" /sys/devices/virtual/touch/touch_boost
 
     # InputDispatcher, InputReader, and Android UI Tweaks
-    systemserver_pid=$(pidof -s system_server)
-    input_reader_pid=$(ps -A -T -p $systemserver_pid -o tid,cmd | grep 'InputReader' | awk '{print $1}')
-    input_dispatcher_pid=$(ps -A -T -p $systemserver_pid -o tid,cmd | grep 'InputDispatcher' | awk '{print $1}')
-    android_ui_pid=$(ps -A -T -p $systemserver_pid -o tid,cmd | grep 'android.ui' | awk '{print $1}')
+    systemserver="$(pidof -s system_server)"
+    input_reader="$(ps -A -T -p $systemserver -o tid,cmd | grep 'InputReader' | awk '{print $1}')"
+    input_dispatcher="$(ps -A -T -p $systemserver -o tid,cmd | grep 'InputDispatcher' | awk '{print $1}')"
     
-    renice -n -20 -p $input_reader_pid
-    renice -n -20 -p $input_dispatcher_pid
-
-    chrt -r -p 99 $input_reader_pid
-    chrt -r -p 99 $input_dispatcher_pid
-
-    renice -n -20 -p $android_ui_pid
-    chrt -r -p 99 $android_ui_pid
+    # Input Reader
+    renice -n -20 -p $input_reader
+    chrt -r -p 99 $input_reader
+    
+    # Input Dispatcher
+    renice -n -20 -p $input_dispatcher
+    chrt -r -p 99 $input_dispatcher
     
     # always return success
     true
