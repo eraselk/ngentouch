@@ -8,6 +8,6 @@ MAIN   => v4.0.4
 > [!WARNING]
 > Gacor kang ⚡⚡
 
-https://github.com/user-attachments/assets/7a29ab61-637f-4adf-80d7-c69128c6a3a0
+https://github.com/user-attachments/assets/d9067167-691c-4282-8ee2-1229d65d1977
 
 ### Join [@gacorprjkt](https://t.me/gacorprjkt)
