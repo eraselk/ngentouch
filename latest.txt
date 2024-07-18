@@ -1,4 +1,19 @@
-VER="v4.0.3_stable"
-VERCODE="403"
-LINK="https://github.com/eraselk/ngentouch/releases/download/v4.0.3_stable/NgenTouch-v4.0.3_stable-240705224930.zip"
-CHANGELOG="• Menghapus debugger (--upload-log)"
+VER="v4.0.4_stable"
+VERCODE="4040"
+LINK="https://github.com/eraselk/ngentouch/releases/download/v4.0.4_stable/NgenTouch-v4.0.4.stable-240718164201.zip
+CHANGELOG="• menambahkan lebih banyak properti yang
+  berkaitan dengan input sentuhan.
+
+• menggunakan metode baru untuk meningkatkan prioritas
+  thread InputDispatcher dan InputReader.
+
+• opsi '--update-module' disederhanakan menjadi '--update' saja.
+
+• penyederhaan sintaksis.
+
+• meningkatkan keterbacaan kode.
+
+• dan lain-lain.
+
+Credit:
+- https://github.com/Kautsar0907 (Touch edge fixer)"
