@@ -1,5 +1,5 @@
 VER="v4.0.4_stable"
-VERCODE="4040"
+VERCODE="404"
 LINK="https://github.com/eraselk/ngentouch/releases/download/v4.0.4_stable/NgenTouch-v4.0.4.stable-240718164201.zip"
 CHANGELOG="• menambahkan lebih banyak properti yang
   berkaitan dengan input sentuhan.
