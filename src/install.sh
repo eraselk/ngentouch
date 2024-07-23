@@ -11,7 +11,6 @@ LATESTARTSERVICE=true
 dbg=1
 
 mod_print() {
-
 	# Load function
 	cmd_pkg() {
 		a="cmd package"
@@ -28,7 +27,7 @@ mod_print() {
 ░█░█░█░█░█▀▀░█░█░░█░░█░█░█░█░█░░░█▀█
 ░▀░▀░▀▀▀░▀▀▀░▀░▀░░▀░░▀▀▀░▀▀▀░▀▀▀░▀░▀"
 	ui_print "_____________________________________________"
-	ui_print "   Feel The Responsiveness and Smoothess !  "
+	ui_print "   Feel The Responsiveness and Smoothness!  "
 	ui_print ""
 	sleep 1
 	if [ $dbg -ne 1 ]; then
@@ -91,36 +90,36 @@ mod_print() {
 	fi
 
 	ui_print ""
-	ui_print " Testing cmd... (3/3)"
+	ui_print "  Testing cmd... (3/3)"
 	if settings delete global test >/dev/null 2>&1; then
-		ui_print " Normal method: OK"
+		ui_print "  Normal method: OK"
 		test_cmd3=1
 	else
-		ui_print " Normal method: ERROR"
+		ui_print "  Normal method: ERROR"
 		ui_print ""
 		sleep 0.2
-		ui_print " Trying another method..."
+		ui_print "  Trying another method..."
 		sleep 0.2
 		if su -lp 2000 -c "settings delete global test >/dev/null 2>&1"; then
-			ui_print " Another method: OK"
+			ui_print "  Another method: OK"
 			another3=1
 		else
-			ui_print " Another method: ERROR"
+			ui_print "  Another method: ERROR"
 			another3=0
 		fi
 	fi
 
 	ui_print ""
-	if [ $normal1 -eq 1 ] && [ $normal2 -eq 1 ] && [ $normal3 -eq 1 ]; then
-		ui_print " Result: use normal method"
+	if [ $normal1 -eq 1 ] && [ $normal2 -eq 1 ] && [ $test_cmd3 -eq 1 ]; then
+		ui_print "  Result: use normal method"
 		normal_method=1
 	elif [ $another1 -eq 1 ] && [ $another2 -eq 1 ] && [ $another3 -eq 1 ]; then
-		ui_print " Result: use another method"
+		ui_print "  Result: use another method"
 		another_method=1
-	elif [ $another1 -eq 0 ] && [ $another2 -eq 0 ] && [ $another3 -eq 1 ]; then
-		ui_print " Result: ERROR"
+	elif [ $another1 -eq 0 ] && [ $another2 -eq 0 ] && [ $another3 -eq 0 ]; then
+		abort "  Result: ERROR"
 	else
-		ui_print " Result: abnormal"
+		ui_print "  Result: abnormal"
 		sleep 1
 		ui_print "  using another method instead."
 		another_method=1
