@@ -7,6 +7,8 @@
 normal_method=0
 another_method=0
 
+# put/edit a row.
+# usage: setput <DATABASE> <ROW> <VALUE>
 setput() {
     if [ $another_method -eq 1 ]; then
         su -lp 2000 -c "settings put $1 $2 $3" # Experimental
@@ -15,6 +17,8 @@ setput() {
     fi
 }
 
+# get a row value.
+# usage: setget <DATABASE> <ROW>
 setget() {
     if [ $another_method -eq 1 ]; then
         su -lp 2000 -c "settings get $1 $2" # Experimental
@@ -23,9 +27,19 @@ setget() {
     fi
 }
 
+# delete a row.
+# usage: setdel <DATABASE> <ROW>
+setdel() {
+    if [ $another_method -eq 1 ]; then
+        su -lp 2000 -c "settings delete $1 $2" # Experimental
+    elif [ $normal_method -eq 1 ]; then
+        settings delete $1 $2
+    fi
+}
+
 run() {
 
-    # Functions that needed by this script.
+    # usage: write <VALUE> <PATH>
     write() {
         if [ -f "$2" ]; then
             if [ ! -w "$2" ]; then
@@ -34,7 +48,8 @@ run() {
             echo "$1" >"$2"
         fi
     }
-
+    
+    # usage: set_prop <PROPERTY> <VALUE>
     set_prop() {
         resetprop -n "$1" "$2"
     }
@@ -120,16 +135,16 @@ run() {
 
 remove() {
     (
-        settings delete system pointer_speed
-        settings delete secure multi_press_timeout
-        settings delete secure long_press_timeout
-        settings delete global block_untrusted_touches
+        setdel system pointer_speed
+        setdel secure multi_press_timeout
+        setdel secure long_press_timeout
+        setdel global block_untrusted_touches
         edge="$(settings list system | grep "edge_*" | cut -f1 -d '=')"
         for row in ${edge[@]}; do
-            settings delete system $row
+            setdel system $row
         done
-        settings delete system high_touch_polling_rate_enable
-        settings delete system high_touch_sensitivity_enable
+        setdel system high_touch_polling_rate_enable
+        setdel system high_touch_sensitivity_enable
         cmd package compile -m verify -f com.android.systemui
         cmd package compile -m assume-verified -f com.android.systemui --compile-filter=assume-verified -c --reset
         rm -rf /data/dalvik-cache/*
@@ -186,8 +201,8 @@ update_module() {
     # Detect architecture
     ARCH=""
     case "$(getprop ro.product.cpu.abi)" in
-    arm64-v8a) ARCH="64" ;;
-    armeabi-v7a) ARCH="32" ;;
+        arm64-v8a) ARCH="64" ;;
+        armeabi-v7a) ARCH="32" ;;
     esac
 
     # Declare module version
@@ -337,6 +352,7 @@ if ! [ $(id -u) -eq 0 ]; then
     exit 1
 fi
 
+me="$(basename "$0")"
 case "$1" in
 "--apply")
     run >/dev/null 2>&1
@@ -352,7 +368,7 @@ case "$1" in
     ;;
 *)
     if [ -z "$1" ]; then
-        echo "No option provided
+        echo "${me}: No option provided
 Try: 'ntm --help' for more information."
         exit 1
     else
@@ -362,8 +378,7 @@ Try: 'ntm --help' for more information."
             fi
         done
         if [ "$valid" != true ]; then
-            script_name=$(basename "$0")
-            echo "${script_name}: Invalid option '$1'. See '${script_name} --help'."
+            echo "${me}: Invalid option '$1'. See '${me} --help'."
             exit 1
         fi
     fi

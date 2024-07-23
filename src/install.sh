@@ -50,67 +50,81 @@ mod_print() {
     ui_print ""
     sleep 1
     
-    ui_print " Testing cmd... (1/2)"
+    ui_print "  Testing cmd... (1/3)"
     if settings put global test 1; then
         sleep 0.4
-        ui_print " Normal method: OK"
-        test_cmd1=1
+        ui_print "  Normal method: OK"
+        normal1=1
     else
-        ui_print " Normal method: ERROR"
+        ui_print "  Normal method: ERROR"
         ui_print ""
         sleep 0.2
-        ui_print " Trying another method..."
+        ui_print "  Trying another method..."
         sleep 0.2
         if su -lp 2000 -c "settings put global test 1"; then
-            ui_print " Another method: OK"
+            ui_print "  Another method: OK"
             another1=1
         else
-            ui_print " Another method: ERROR"
+            ui_print "  Another method: ERROR"
             another1=0
         fi
     fi
     
     ui_print ""
-    ui_print " Testing cmd... (2/2)"
+    ui_print "  Testing cmd... (2/3)"
     if settings get global test >/dev/null 2>&1; then
+        ui_print "  Normal method: OK"
+        normal2=1
+    else
+        ui_print "  Normal method: ERROR"
+        ui_print ""
+        sleep 0.2
+        ui_print "  Trying another method..."
+        sleep 0.2
+        if su -lp 2000 -c "settings get global test >/dev/null 2>&1"; then
+            ui_print "  Another method: OK"
+            another2=1
+        else
+            ui_print "  Another method: ERROR"
+            another2=0
+        fi
+    fi
+    
+    ui_print ""
+    ui_print " Testing cmd... (3/3)"
+    if settings delete global test >/dev/null 2>&1; then
         ui_print " Normal method: OK"
-        test_cmd2=1
+        test_cmd3=1
     else
         ui_print " Normal method: ERROR"
         ui_print ""
         sleep 0.2
         ui_print " Trying another method..."
         sleep 0.2
-        if su -lp 2000 -c "settings get global test >/dev/null 2>&1"; then
+        if su -lp 2000 -c "settings delete global test >/dev/null 2>&1"; then
             ui_print " Another method: OK"
-            another2=1
+            another3=1
         else
             ui_print " Another method: ERROR"
-            another2=0
+            another3=0
         fi
     fi
     
     ui_print ""
-    if [ $test_cmd1 -eq 1 ] && [ $test_cmd2 -eq 1 ]; then
+    if [ $normal1 -eq 1 ] && [ $normal2 -eq 1 ] && [ $normal3 -eq 1 ]; then
         ui_print " Result: use normal method"
         normal_method=1
-    fi
-    
-    if [ $another1 -eq 1 ] && [ $another2 -eq 1 ]; then
+    elif [ $another1 -eq 1 ] && [ $another2 -eq 1 ] && [ $another3 -eq 1 ]; then
         ui_print " Result: use another method"
+        another_method=1 
+    elif [ $another1 -eq 0 ] && [ $another2 -eq 0 ] && [ $another3 -eq 1 ] then
+        ui_print " Result: ERROR"
+    else
+        ui_print " Result: abnormal"
+        sleep 1
+        ui_print "  using another method instead."
         another_method=1
     fi
-    
-    if [ $another1 -eq 0 ] && [ $another2 -eq 0 ]; then
-        ui_print " Result: ERROR"
-    fi
-    
-    if [ $normal_method -eq 1 ]; then
-        settings delete global test >/dev/null 2>&1
-    elif [ $another_method -eq 1]; then
-        su -lp 2000 -c "settings delete global test"
-    fi
-    
     ui_print ""  
 }
 
