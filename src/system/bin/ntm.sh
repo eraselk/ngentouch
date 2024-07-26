@@ -272,17 +272,17 @@ update_module() {
 	CL="$CHANGELOG"
 
 	# Check for updates
-	if [ "$MODVER" = "$VERSION" ] && [ "$VERSIONCODE" -eq "$MODVERCODE" ]; then
+	if [[ "$MODVER" = "*$VERSION*" ]] && [[ "$VERSIONCODE" -eq "$MODVERCODE" ]]; then
 		echo "No update available, you're on the latest version."
 		echo
 		cleanup
 		exit 0
-	elif [ "$MODVER" != "$VERSION" ] && [ "$VERSIONCODE" -lt "$MODVERCODE" ]; then
+	elif [[ "$MODVER" != "*$VERSION*" ]] && [[ "$VERSIONCODE" -lt "$MODVERCODE" ]]; then
 		echo "You're on the Beta version. Please wait for the stable version."
 		echo
 		cleanup
 		exit 0
-	elif [ "$MODVER" != "$VERSION" ] && [ "$VERSIONCODE" -gt "$MODVERCODE" ]; then
+	elif [[ "$MODVER" != "*$VERSION*" ]] && [[ "$VERSIONCODE" -gt "$MODVERCODE" ]]; then
 		echo "New Update available!"
 		echo "Version: $VERSION"
 		echo
