@@ -42,82 +42,55 @@ mod_print() {
 	ui_print ""
 	sleep 1
 
-	ui_print "  Testing cmd... (1/3)"
-	if settings put global test 1; then
-		sleep 0.4
-		ui_print "  Normal method: OK"
-		normal1=1
-	else
-		ui_print "  Normal method: ERROR"
-		ui_print ""
-		sleep 0.2
-		ui_print "  Trying another method..."
-		sleep 0.2
-		if su -lp 2000 -c "settings put global test 1"; then
-			ui_print "  Another method: OK"
-			another1=1
-		else
-			ui_print "  Another method: ERROR"
-			another1=0
-		fi
-	fi
-
+    ui_print "  Testing commands..."
+    
+    if settings put global test 1 2>/dev/null; then
+        ui_print "  Test 1: PASSED"
+        test1=true
+    else
+        ui_print "  Test 1: FAILED"
+        test1=false
+    fi
+    
+    a="$(settings get global test 2>/dev/null)"
+    if [ -n "$a" ] && [ "$a" != "null" ] && [ "$a" = "1" ]; then
+        ui_print "  Test 2: PASSED"
+        test2=true
+    else
+        ui_print "  Test 2: FAILED"
+        test2=false
+    fi
+    
+    if settings delete global test >/dev/null; then
+        ui_print "  Test 3: PASSED"
+        test3=true
+    else
+        ui_print "  Test 3: FAILED"
+        test3=false
+    fi
+    
+    if setenforce 0 || echo -n "0" >/sys/fs/selinux/enforce 2>/dev/null; then
+        if [ "$(getenforce)" = "Permissive" ]; then
+            ui_print "  Test 4: PASSED"
+            test4=true
+        else
+            ui_print "  Test 4: FAILED"
+            test4=false
+        fi
+    else
+        ui_print "  Test 4: FAILED"
+        test4=false
+    fi
+    
 	ui_print ""
-	ui_print "  Testing cmd... (2/3)"
-	if settings get global test >/dev/null 2>&1; then
-		ui_print "  Normal method: OK"
-		normal2=1
-	else
-		ui_print "  Normal method: ERROR"
-		ui_print ""
-		sleep 0.2
-		ui_print "  Trying another method..."
-		sleep 0.2
-		if su -lp 2000 -c "settings get global test >/dev/null 2>&1"; then
-			ui_print "  Another method: OK"
-			another2=1
-		else
-			ui_print "  Another method: ERROR"
-			another2=0
-		fi
-	fi
-
-	ui_print ""
-	ui_print "  Testing cmd... (3/3)"
-	if settings delete global test >/dev/null 2>&1; then
-		ui_print "  Normal method: OK"
-		test_cmd3=1
-	else
-		ui_print "  Normal method: ERROR"
-		ui_print ""
-		sleep 0.2
-		ui_print "  Trying another method..."
-		sleep 0.2
-		if su -lp 2000 -c "settings delete global test >/dev/null 2>&1"; then
-			ui_print "  Another method: OK"
-			another3=1
-		else
-			ui_print "  Another method: ERROR"
-			another3=0
-		fi
-	fi
-
-	ui_print ""
-	if [ $normal1 -eq 1 ] && [ $normal2 -eq 1 ] && [ $test_cmd3 -eq 1 ]; then
-		ui_print "  Result: use normal method"
-		normal_method=1
-	elif [ $another1 -eq 1 ] && [ $another2 -eq 1 ] && [ $another3 -eq 1 ]; then
-		ui_print "  Result: use another method"
-		another_method=1
-	elif [ $another1 -eq 0 ] && [ $another2 -eq 0 ] && [ $another3 -eq 0 ]; then
-	    rm -rf $MODPATH $NVBASE/modules/ngentouch_module
-		abort "  Result: ERROR"
-	else
-		ui_print "  Result: abnormal"
-		sleep 1
-		ui_print "  using another method instead."
-		another_method=1
-	fi
+    if $test1 && $test2 && $test3 && $test4; then
+        ui_print "  Result: all commands work properly"
+        normal=true
+    else
+        ui_print "  Result: abnormal, maybe the module won't working.."
+        normal=false
+    fi
+        
 	ui_print ""
 }
 
@@ -133,10 +106,8 @@ perm() {
 }
 
 apply_method() {
-	if [ $normal_method -eq 1 ]; then
-		sed -i "s/normal_method=0/normal_method=1/g" $MODPATH/system/bin/ntm
-	elif [ $another_method -eq 1 ]; then
-		sed -i "s/another_method=0/another_method=1/g" $MODPATH/system/bin/ntm
+	if $normal; then
+		sed -i "s/normal=false/normal=true/g" $MODPATH/system/bin/ntm
 	fi
 }
 

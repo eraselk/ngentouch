@@ -4,26 +4,11 @@
 # You can steal/modify/copy any codes in this script without any credits.
 #
 
-normal_method=0
-another_method=0
+normal=true
 
-# put/edit a row.
-# usage: setput <DATABASE> <ROW> <VALUE>
-setput() {
-    if [ $another_method -eq 1 ]; then
-        su -lp 2000 -c "settings put $1 $2 $3" # Experimental
-    elif [ $normal_method -eq 1 ]; then
-        settings put $1 $2 $3
-    fi
-}
-
-# delete a row.
-# usage: setdel <DATABASE> <ROW>
-setdel() {
-    if [ $another_method -eq 1 ]; then
-        su -lp 2000 -c "settings delete $1 $2" # Experimental
-    elif [ $normal_method -eq 1 ]; then
-        settings delete $1 $2
+pengaturan() {
+    if $normal; then
+        settings "$@"
     fi
 }
 
@@ -66,26 +51,26 @@ run() {
         set_prop persist.vendor.qti.inputopts.enable true
     fi
 
-    setput secure multi_press_timeout 200
-    setput secure long_press_timeout 200
-    setput global block_untrusted_touches 0
-    setput system pointer_speed 7
+    pengaturan put secure multi_press_timeout 200
+    pengaturan put secure long_press_timeout 200
+    pengaturan put global block_untrusted_touches 0
+    pengaturan put system pointer_speed 7
 
     # Edge Fixer, Special for fog, rain, wind
     # Thanks to @Dahlah_Men
     edge=("edge_pressure" "edge_size" "edge_type")
     for row in ${edge[@]}; do
-        setput system $row 0
+        pengaturan put system $row 0
     done
 
     edge2=("edge_mode_state_title" "pref_edge_handgrip")
     for row in ${edge2[@]}; do
-        setput global $row false
+        pengaturan put global $row false
     done
 
     # Gimmick 696969
-    setput system high_touch_polling_rate_enable 1
-    setput system high_touch_sensitivity_enable 1
+    pengaturan put system high_touch_polling_rate_enable 1
+    pengaturan put system high_touch_sensitivity_enable 1
 
     i="/proc/touchpanel"
     write "1" "$i/game_switch_enable"
@@ -131,20 +116,20 @@ run() {
 
 remove() {
     (
-        setdel system pointer_speed
-        setdel secure multi_press_timeout
-        setdel secure long_press_timeout
-        setdel global block_untrusted_touches
+        pengaturan delete system pointer_speed
+        pengaturan delete secure multi_press_timeout
+        pengaturan delete secure long_press_timeout
+        pengaturan delete global block_untrusted_touches
         edge=("edge_pressure" "edge_size" "edge_type")
         for row in ${edge[@]}; do
-            setdel system $row
+            pengaturan delete system $row
         done
         edge2=("edge_mode_state_title" "pref_edge_handgrip")
         for row in ${edge2[@]}; do
-            setdel global $row
+            pengaturan delete global $row
         done
-        setdel system high_touch_polling_rate_enable
-        setdel system high_touch_sensitivity_enable
+        pengaturan delete system high_touch_polling_rate_enable
+        pengaturan delete system high_touch_sensitivity_enable
         cmd package compile -m verify -f com.android.systemui
         cmd package compile -m assume-verified -f com.android.systemui --compile-filter=assume-verified -c --reset
         rm -rf /data/dalvik-cache/*
