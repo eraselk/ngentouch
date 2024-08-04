@@ -1,6 +1,6 @@
 set -e
 
-if ! env | grep 'com.termux' >/dev/null 2>&1; then
+if ! env | grep -q 'com.termux'; then
     echo 'WARN: Build using external terminal, maybe zipping not succeded?'
     echo 'Hint: Run as root, if zipping not succeded.'
     echo

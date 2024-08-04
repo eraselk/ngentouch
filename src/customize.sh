@@ -1,13 +1,7 @@
 #!/bin/sh
 
-# ----- Module Installer -----
-# (C) gacorpkjrt°
+: '----- Module Installer -----'
 
-# Flags
-SKIPMOUNT=false
-PROPFILE=false
-POSTFSDATA=false
-LATESTARTSERVICE=true
 dbg=1
 
 mod_print() {
@@ -45,7 +39,6 @@ mod_print() {
 		cmd_pkg compile -r shared --secondary-dex com.android.systemui
 		cmd_pkg reconcile-secondary-dex-files com.android.systemui
 	fi
-	ui_print ""
 	ui_print ""
 	sleep 1
 
@@ -117,6 +110,7 @@ mod_print() {
 		ui_print "  Result: use another method"
 		another_method=1
 	elif [ $another1 -eq 0 ] && [ $another2 -eq 0 ] && [ $another3 -eq 0 ]; then
+	    rm -rf $MODPATH $NVBASE/modules/ngentouch_module
 		abort "  Result: ERROR"
 	else
 		ui_print "  Result: abnormal"
@@ -127,9 +121,11 @@ mod_print() {
 	ui_print ""
 }
 
-extract_files() {
+deploy() {
 	unzip -o "$ZIPFILE" 'service.sh' -d $MODPATH >&2
 	unzip -o "$ZIPFILE" 'system/*' -d $MODPATH >&2
+    rm -rf \
+    $MODPATH/META-INF
 }
 
 perm() {
@@ -146,6 +142,6 @@ apply_method() {
 
 set -x
 mod_print
-extract_files
+deploy
 perm
 apply_method

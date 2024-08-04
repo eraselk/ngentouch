@@ -17,16 +17,6 @@ setput() {
 	fi
 }
 
-# get a row value.
-# usage: setget <DATABASE> <ROW>
-setget() {
-	if [ $another_method -eq 1 ]; then
-		su -lp 2000 -c "settings get $1 $2" # Experimental
-	elif [ $normal_method -eq 1 ]; then
-		settings get $1 $2
-	fi
-}
-
 # delete a row.
 # usage: setdel <DATABASE> <ROW>
 setdel() {
@@ -71,7 +61,7 @@ run() {
 	set_prop ro.surface_flinger.max_frame_buffer_acquired_buffers 3
 	set_prop debug.input.normalizetouch true
 
-	if cat /proc/cpuinfo | grep "Hardware" | uniq | cut -d ":" -f 2 | grep 'Qualcomm'; then
+	if cat /proc/cpuinfo | grep "Hardware" | uniq | cut -d ":" -f 2 | grep -q 'Qualcomm'; then
 		set_prop persist.vendor.qti.inputopts.movetouchslop 0.1
 		set_prop persist.vendor.qti.inputopts.enable true
 	fi
@@ -80,14 +70,20 @@ run() {
 	setput secure long_press_timeout 200
 	setput global block_untrusted_touches 0
 	setput system pointer_speed 7
-
-	edge="$(settings list system | grep "edge_*" | cut -f1 -d '=')"
-
+    
+    # Edge Fixer, Special for fog, rain, wind
+    # Thanks to @Dahlah_Men
+    edge=("edge_pressure" "edge_size" "edge_type")
 	for row in ${edge[@]}; do
 		setput system $row 0
 	done
+	
+	edge2=("edge_mode_state_title" "pref_edge_handgrip")
+	for row in ${edge2[@]}; do
+	    setput global $row false
+	done
 
-	# Maybe gimmick
+	# Gimmick 696969
 	setput system high_touch_polling_rate_enable 1
 	setput system high_touch_sensitivity_enable 1
 
@@ -116,7 +112,7 @@ run() {
 	write "1" /proc/perfmgr/tchbst/kernel/tb_enable
 	write "1" /sys/devices/virtual/touch/touch_boost
 
-	# InputDispatcher, InputReader, and Android UI Tweaks
+	# InputDispatcher, and InputReader tweaks
 	systemserver="$(pidof -s system_server)"
 	input_reader="$(ps -A -T -p $systemserver -o tid,cmd | grep 'InputReader' | awk '{print $1}')"
 	input_dispatcher="$(ps -A -T -p $systemserver -o tid,cmd | grep 'InputDispatcher' | awk '{print $1}')"
@@ -139,10 +135,14 @@ remove() {
 		setdel secure multi_press_timeout
 		setdel secure long_press_timeout
 		setdel global block_untrusted_touches
-		edge="$(settings list system | grep "edge_*" | cut -f1 -d '=')"
+        edge=("edge_pressure" "edge_size" "edge_type")
 		for row in ${edge[@]}; do
 			setdel system $row
 		done
+		edge2=("edge_mode_state_title" "pref_edge_handgrip")
+	    for row in ${edge2[@]}; do
+	        setdel global $row
+	    done
 		setdel system high_touch_polling_rate_enable
 		setdel system high_touch_sensitivity_enable
 		cmd package compile -m verify -f com.android.systemui
@@ -172,12 +172,12 @@ EOF
 
 update_module() {
 	# Check if 'com.termux' package and wget are installed
-	if ! cmd package -l | grep 'com.termux' >/dev/null 2>&1 || ! command -v /data/data/com.termux/files/usr/bin/wget >/dev/null 2>&1; then
+	if ! cmd package -l | grep -q 'com.termux' || ! command -v /data/data/com.termux/files/usr/bin/wget >/dev/null 2>&1; then
 		echo "Searching BusyBox binary in /data/adb..."
 		BB="$(find /data/adb -type f -name busybox | head -n1)"
 
 		if [ -n "$BB" ]; then
-			echo "OK"
+			echo "Found BB: $BB"
 			echo
 			WGET="$BB wget"
 			echo "Testing wget..."
@@ -198,23 +198,19 @@ update_module() {
 
 	cd /sdcard
 
-	# Detect architecture
-	ARCH=""
-	case "$(getprop ro.product.cpu.abi)" in
-	arm64-v8a) ARCH="64" ;;
-	armeabi-v7a) ARCH="32" ;;
+	# Variables
+	MODPATH=/data/adb/modules/ngentouch_module
+	MODVER="$(grep 'version=' $MODPATH/module.prop | cut -d '=' -f 2)"
+	MODVERCODE="$(grep 'versionCode=' $MODPATH/module.prop | cut -d '=' -f 2)"
+	
+    case "$(getprop ro.product.cpu.abi)" in
+	    arm64-v8a) ARCH="64" ;;
+	    armeabi-v7a) ARCH="32" ;;
 	esac
-
-	# Declare module version
-	MODVER="$(grep 'version=' /data/adb/modules/ngentouch_module/module.prop | cut -d '=' -f 2)"
-	MODVERCODE="$(grep 'versionCode=' /data/adb/modules/ngentouch_module/module.prop | cut -d '=' -f 2)"
-
-	# Setup daemon's variables
+	
 	KASU="/data/adb/ksu/bin/ksud"
 	APCH="/data/adb/ap/bin/apd"
-	MAGISK="/data/adb/magisk/magisk${ARCH}"
-
-	# Filename variable - zip name
+	MAGISK="/data/adb/magisk/magisk$ARCH"
 	FNAME="ngentouch.zip"
 
 	# Cleanup function
@@ -226,10 +222,7 @@ update_module() {
 	# Clean unnecessary files
 	cleanup
 
-	# Set up $MGR and $ARG variables
-	MGR=""
-	ARG=""
-
+	# Set up MGR and ARG variables
 	if [ -f "$KASU" ]; then
 		MGR="$KASU"
 		ARG="module install"
@@ -253,7 +246,7 @@ update_module() {
 	echo
 
 	# Download latest.txt
-	$WGET "https://github.com/eraselk/ngentouch/raw/main/latest.txt" -O latest.txt >/dev/null 2>&1
+	$WGET -q "https://github.com/eraselk/ngentouch/raw/main/latest.txt" -O latest.txt
 
 	# Import variables from latest.txt
 	if [ -f "latest.txt" ]; then
@@ -286,7 +279,11 @@ update_module() {
 		echo "New Update available!"
 		echo "Version: $VERSION"
 		echo
-		[ -n "$CL" ] && echo "--- Changelog ---" && echo "$CL" && echo
+		if [ -n "$CL" ]; then
+		    echo "--- Changelog ---"
+		    echo "$CL"
+		    echo
+		fi
 
 		echo -n "Download and Install? [y/n]"
 		echo -n ": "
@@ -296,16 +293,18 @@ update_module() {
 		y | Y)
 			echo
 			echo "Downloading the latest module..."
-			$WGET "$LINK" -O "$FNAME" >/dev/null 2>&1 && echo "Done" || {
+			if $WGET -q "$LINK" -O "$FNAME"; then 
+			    echo "Done"
+			else
 				echo "Failed."
 				cleanup
 				exit 1
-			}
+			fi
 
 			echo
 			echo "Installing the module..."
 			echo
-			$MGR $ARG "$FNAME" && {
+			if $MGR $ARG $FNAME; then
 				echo
 				cleanup
 				echo "Done"
@@ -314,28 +313,35 @@ update_module() {
 				echo -n ": "
 				read -r choice
 				case "$choice" in
-				y | Y) reboot ;;
-				n | N) exit 0 ;;
-				*) echo "Invalid input, use y/n to answer." && exit 1 ;;
+				    y | Y) reboot ;;
+				    n | N) exit 0 ;;
+				    *) echo "Invalid input, use y or n to answer." && exit 1 ;;
 				esac
-			} || {
+			else
 				echo
 				echo "Failed."
 				cleanup
 				exit 1
-			}
-			;;
+			fi ;;
 		n | N)
 			cleanup
-			exit 0
-			;;
+			exit 0 ;;
 		*)
 			echo
-			echo "Invalid input, use y/n to answer."
+			echo "Invalid input, use y or n to answer."
 			cleanup
-			exit 1
-			;;
+			exit 1 ;;
 		esac
+    else
+        echo "----- Abnormal Version Detected -----"
+        echo "Current Version: $MODVER"
+        echo "New Version: $VERSION"
+        echo "Current Version Code: $MODVERCODE"
+        echo "New Version Code: $VERSIONCODE"
+        echo 
+        echo "Please screenshot and report to chat group: @gudangtoenixzdisc"
+        echo
+        exit 1
 	fi
 }
 
@@ -347,7 +353,7 @@ option_list=(
 	"help"
 )
 
-if ! [ $(id -u) -eq 0 ]; then
+if [ $(id -u) -ne 0 ]; then
 	echo "Please run as superuser (SU)"
 	exit 1
 fi
