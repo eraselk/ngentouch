@@ -70,17 +70,17 @@ run() {
 	setput secure long_press_timeout 200
 	setput global block_untrusted_touches 0
 	setput system pointer_speed 7
-    
-    # Edge Fixer, Special for fog, rain, wind
-    # Thanks to @Dahlah_Men
-    edge=("edge_pressure" "edge_size" "edge_type")
+
+	# Edge Fixer, Special for fog, rain, wind
+	# Thanks to @Dahlah_Men
+	edge=("edge_pressure" "edge_size" "edge_type")
 	for row in ${edge[@]}; do
 		setput system $row 0
 	done
-	
+
 	edge2=("edge_mode_state_title" "pref_edge_handgrip")
 	for row in ${edge2[@]}; do
-	    setput global $row false
+		setput global $row false
 	done
 
 	# Gimmick 696969
@@ -135,14 +135,14 @@ remove() {
 		setdel secure multi_press_timeout
 		setdel secure long_press_timeout
 		setdel global block_untrusted_touches
-        edge=("edge_pressure" "edge_size" "edge_type")
+		edge=("edge_pressure" "edge_size" "edge_type")
 		for row in ${edge[@]}; do
 			setdel system $row
 		done
 		edge2=("edge_mode_state_title" "pref_edge_handgrip")
-	    for row in ${edge2[@]}; do
-	        setdel global $row
-	    done
+		for row in ${edge2[@]}; do
+			setdel global $row
+		done
 		setdel system high_touch_polling_rate_enable
 		setdel system high_touch_sensitivity_enable
 		cmd package compile -m verify -f com.android.systemui
@@ -202,12 +202,12 @@ update_module() {
 	MODPATH=/data/adb/modules/ngentouch_module
 	MODVER="$(grep 'version=' $MODPATH/module.prop | cut -d '=' -f 2)"
 	MODVERCODE="$(grep 'versionCode=' $MODPATH/module.prop | cut -d '=' -f 2)"
-	
-    case "$(getprop ro.product.cpu.abi)" in
-	    arm64-v8a) ARCH="64" ;;
-	    armeabi-v7a) ARCH="32" ;;
+
+	case "$(getprop ro.product.cpu.abi)" in
+	arm64-v8a) ARCH="64" ;;
+	armeabi-v7a) ARCH="32" ;;
 	esac
-	
+
 	KASU="/data/adb/ksu/bin/ksud"
 	APCH="/data/adb/ap/bin/apd"
 	MAGISK="/data/adb/magisk/magisk$ARCH"
@@ -280,9 +280,9 @@ update_module() {
 		echo "Version: $VERSION"
 		echo
 		if [ -n "$CL" ]; then
-		    echo "--- Changelog ---"
-		    echo "$CL"
-		    echo
+			echo "--- Changelog ---"
+			echo "$CL"
+			echo
 		fi
 
 		echo -n "Download and Install? [y/n]"
@@ -293,8 +293,8 @@ update_module() {
 		y | Y)
 			echo
 			echo "Downloading the latest module..."
-			if $WGET "$LINK" -O "$FNAME" >/dev/null 2>&1; then 
-			    echo "Done"
+			if $WGET "$LINK" -O "$FNAME" >/dev/null 2>&1; then
+				echo "Done"
 			else
 				echo "Failed."
 				cleanup
@@ -313,35 +313,38 @@ update_module() {
 				echo -n ": "
 				read -r choice
 				case "$choice" in
-				    y | Y) reboot ;;
-				    n | N) exit 0 ;;
-				    *) echo "Invalid input, use y or n to answer." && exit 1 ;;
+				y | Y) reboot ;;
+				n | N) exit 0 ;;
+				*) echo "Invalid input, use y or n to answer." && exit 1 ;;
 				esac
 			else
 				echo
 				echo "Failed."
 				cleanup
 				exit 1
-			fi ;;
+			fi
+			;;
 		n | N)
 			cleanup
-			exit 0 ;;
+			exit 0
+			;;
 		*)
 			echo
 			echo "Invalid input, use y or n to answer."
 			cleanup
-			exit 1 ;;
+			exit 1
+			;;
 		esac
-    else
-        echo "----- Abnormal Version Detected -----"
-        echo "Current Version: $MODVER"
-        echo "New Version: $VERSION"
-        echo "Current Version Code: $MODVERCODE"
-        echo "New Version Code: $VERSIONCODE"
-        echo
-        echo "Please screenshot and report to chat group: @gudangtoenixzdisc"
-        echo
-        exit 1
+	else
+		echo "----- Abnormal Version Detected -----"
+		echo "Current Version: $MODVER"
+		echo "New Version: $VERSION"
+		echo "Current Version Code: $MODVERCODE"
+		echo "New Version Code: $VERSIONCODE"
+		echo
+		echo "Please screenshot and report to chat group: @gudangtoenixzdisc"
+		echo
+		exit 1
 	fi
 }
 
