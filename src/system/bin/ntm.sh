@@ -246,7 +246,7 @@ update_module() {
 	echo
 
 	# Download latest.txt
-	$WGET -q "https://github.com/eraselk/ngentouch/raw/main/latest.txt" -O latest.txt
+	$WGET "https://github.com/eraselk/ngentouch/raw/main/latest.txt" -O latest.txt >/dev/null 2>&1
 
 	# Import variables from latest.txt
 	if [ -f "latest.txt" ]; then
@@ -293,7 +293,7 @@ update_module() {
 		y | Y)
 			echo
 			echo "Downloading the latest module..."
-			if $WGET -q "$LINK" -O "$FNAME"; then 
+			if $WGET "$LINK" -O "$FNAME" >/dev/null 2>&1; then 
 			    echo "Done"
 			else
 				echo "Failed."
@@ -338,7 +338,7 @@ update_module() {
         echo "New Version: $VERSION"
         echo "Current Version Code: $MODVERCODE"
         echo "New Version Code: $VERSIONCODE"
-        echo 
+        echo
         echo "Please screenshot and report to chat group: @gudangtoenixzdisc"
         echo
         exit 1
