@@ -1,10 +1,7 @@
 #!/system/bin/sh
 # Install from source
 
-if [ "$(id -u)" -ne "0" ]; then
-    exit 1
-fi
-
+su -c "
 ABI="$(getprop ro.product.cpu.abi)"
 
 case "$ABI" in
@@ -36,3 +33,4 @@ find . -maxdepth 1 -type f -name '*.zip' | while read -r arr
         fi
     done
 $CMD $ARG $ZN
+"
