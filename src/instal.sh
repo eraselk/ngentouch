@@ -2,21 +2,16 @@
 
 : '----- Module Installer -----'
 
-SKIPUNZIP=1
-dbg=1
+# bool
+SKIPMOUNT=false
+PROPFILE=true
+POSTFSDATA=false
+LATESTARTSERVICE=true
 
-mod_print() {
-    # Load function
-    cmd_pkg() {
-        a="cmd package"
-        if cmd package "$@" >/dev/null 2>&1; then
-            ui_print "[INFO] $a $* : Success"
-        else
-            ui_print "[ERROR] $a $* : Failed"
-        fi
-    }
-    rm -rf /data/ngentouch
+# Debugging Mode: bool
+DEBUG=true
 
+print_modname() {
     ui_print ""
     ui_print "░█▀█░█▀▀░█▀▀░█▀█░▀█▀░█▀█░█░█░█▀▀░█░█
 ░█░█░█░█░█▀▀░█░█░░█░░█░█░█░█░█░░░█▀█
@@ -25,7 +20,22 @@ mod_print() {
     ui_print "   Feel The Responsiveness and Smoothness!  "
     ui_print ""
     sleep 1
-    if [ $dbg -ne 1 ]; then
+}
+
+on_install() {
+
+    cmd_pkg() {
+        a="cmd package"
+        if cmd package "$@" >/dev/null 2>&1; then
+            ui_print "[INFO] $a $* : Success"
+        else
+            ui_print "[ERROR] $a $* : Failed"
+        fi
+    }
+    
+    rm -rf /data/ngentouch
+    
+    if ! $DEBUG; then
         cmd_pkg compile -m verify -f com.android.systemui
         cmd_pkg compile -m assume-verified -f com.android.systemui --compile-filter=assume-verified -c --reset
         cmd_pkg force-dex-opt com.android.systemui
@@ -40,6 +50,7 @@ mod_print() {
         cmd_pkg compile -r shared --secondary-dex com.android.systemui
         cmd_pkg reconcile-secondary-dex-files com.android.systemui
     fi
+    
     ui_print ""
     sleep 1
 
@@ -107,19 +118,7 @@ mod_print() {
     fi
 
     ui_print ""
-}
-
-deploy() {
-    unzip -o "$ZIPFILE" 'service.sh' -d $MODPATH >&2
-    unzip -o "$ZIPFILE" 'system.prop' -d $MODPATH >&2
-    unzip -o "$ZIPFILE" 'system/*' -d $MODPATH >&2
-}
-
-perm() {
-    set_perm_recursive $MODPATH 0 0 0777 0777
-}
-
-apply_method() {
+    
     if $normal; then
         sed -i "s/normal=false/normal=true/g" $MODPATH/system/bin/ntm
          if cat /proc/cpuinfo | grep "Hardware" | uniq | cut -d ":" -f 2 | grep -q 'Qualcomm'; then
@@ -129,8 +128,6 @@ apply_method() {
     fi
 }
 
-set -x
-mod_print
-deploy
-perm
-apply_method
+set_permissions() {
+    set_perm_recursive "$MODPATH" 0 0 0777 0777
+}
