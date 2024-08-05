@@ -15,7 +15,7 @@ fi
 cd $(dirname "$0")/src
 VER="$(cat ./module.prop | grep 'version=' | cut -f 2 -d '=' | awk '{print $1}')"
 build_date=$(date +"%y%m%d")
-tamp=$(date +"%H%M%S")
+stamp=$(date +"%H%M%S")
 sed -i "s/version=.*/version=$VER.${build_date}${stamp}/g" ./module.prop
 
 ######################################
