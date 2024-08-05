@@ -78,7 +78,7 @@ mod_print() {
     *) work=false ;;
     esac
 
-    if setenforce 0 &>/dev/null || echo -n "0" >/sys/fs/selinux/enforce &>/dev/null; then
+    if setenforce 0 2>/dev/null || printf "0" >/sys/fs/selinux/enforce 2>/dev/null; then
         ui_print "  Test 4: PASSED"
         test4=true
     else
@@ -90,7 +90,7 @@ mod_print() {
         ui_print "  Test 5: PASSED"
         test5=true
         if ! $permissive; then
-            setenforce 1 || echo -n "1" >/sys/fs/selinux/enforce
+            setenforce 1 || printf "1" >/sys/fs/selinux/enforce
         fi
     else
         ui_print "  Test 5: FAILED"

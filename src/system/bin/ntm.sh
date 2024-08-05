@@ -20,7 +20,7 @@ run() {
     fi
 
     if $normal && ! $permissive; then
-        setenforce 0 || echo -n "0" >/sys/fs/selinux/enforce
+        setenforce 0 || printf "0" >/sys/fs/selinux/enforce
     fi
 
     # usage: write <VALUE> <PATH>
@@ -40,14 +40,17 @@ run() {
 
     # Edge Fixer, Special for fog, rain, wind
     # Thanks to @Dahlah_Men
-    edge=("edge_pressure" "edge_size" "edge_type")
-    for row in ${edge[@]}; do
-        settings put system $row 0
+    edge="edge_pressure
+    edge_size
+    edge_type"
+    for row in $edge; do
+        settings put system "$row" 0
     done
 
-    edge2=("edge_mode_state_title" "pref_edge_handgrip")
-    for row in ${edge2[@]}; do
-        settings put global $row false
+    edge2="edge_mode_state_title
+    pref_edge_handgrip"
+    for row in $edge2; do
+        settings put global "$row" false
     done
 
     # Gimmick 696969
@@ -63,10 +66,8 @@ run() {
 
     # bump sampling rate
     find /sys -type f -name bump_sample_rate | while read -r boost_sr; do
-        for boosts in ${boost_sr[@]}; do
-            write "1" "$boosts"
-        done
-    done
+    write "1" "$boost_sr"
+done
 
     write "1" /sys/module/msm_performance/parameters/touchboost
     write "1" /sys/power/pnpmgr/touch_boost
@@ -81,20 +82,20 @@ run() {
 
     # InputDispatcher, and InputReader tweaks
     systemserver="$(pidof -s system_server)"
-    input_reader="$(ps -A -T -p $systemserver -o tid,cmd | grep 'InputReader' | awk '{print $1}')"
-    input_dispatcher="$(ps -A -T -p $systemserver -o tid,cmd | grep 'InputDispatcher' | awk '{print $1}')"
+    input_reader="$(ps -A -T -p "$systemserver" -o tid,cmd | grep 'InputReader' | awk '{print $1}')"
+    input_dispatcher="$(ps -A -T -p "$systemserver" -o tid,cmd | grep 'InputDispatcher' | awk '{print $1}')"
 
     # Input Reader
-    renice -n -20 -p $input_reader
-    chrt -r -p 99 $input_reader
+    renice -n -20 -p "$input_reader"
+    chrt -r -p 99 "$input_reader"
 
     # Input Dispatcher
-    renice -n -20 -p $input_dispatcher
-    chrt -r -p 99 $input_dispatcher
+    renice -n -20 -p "$input_dispatcher"
+    chrt -r -p 99 "$input_dispatcher"
 
     # change back selinux mode
     if $normal && ! $permissive; then
-        setenforce 1 || echo -n "1" >/sys/fs/selinux/enforce
+        setenforce 1 || printf "1" >/sys/fs/selinux/enforce
     fi
 
     # always return success
@@ -114,7 +115,7 @@ remove() {
         fi
 
         if $normal && ! $permissive; then
-            setenforce 0 || echo -n "0" >/sys/fs/selinux/enforce
+            setenforce 0 || printf "0" >/sys/fs/selinux/enforce
         fi
 
         settings delete system pointer_speed
@@ -122,14 +123,17 @@ remove() {
         settings delete secure long_press_timeout
         settings delete global block_untrusted_touches
 
-        edge=("edge_pressure" "edge_size" "edge_type")
-        for row in ${edge[@]}; do
-            settings delete system $row
+        edge="edge_pressure
+        edge_size
+        edge_type"
+        for row in $edge; do
+            settings delete system "$row"
         done
 
-        edge2=("edge_mode_state_title" "pref_edge_handgrip")
-        for row in ${edge2[@]}; do
-            settings delete global $row
+        edge2="edge_mode_state_title
+        pref_edge_handgrip"
+        for row in $edge2; do
+            settings delete global "$row"
         done
 
         settings delete system high_touch_polling_rate_enable
@@ -140,7 +144,7 @@ remove() {
         touch /data/adb/modules/ngentouch_module/remove
 
         if $normal && ! $permissive; then
-            setenforce 1 || echo -n "1" >/sys/fs/selinux/enforce
+            setenforce 1 || printf "1" >/sys/fs/selinux/enforce
         fi
 
     ) >/dev/null 2>&1
@@ -151,7 +155,7 @@ remove() {
 help_menu() {
     cat <<EOF
 NgenTouch Module Manager
-Version $(cat /data/adb/modules/ngentouch_module/module.prop | grep 'version=' | cut -f 2 -d '=' | sed 's/v//g')
+Version $(grep 'version=' /data/adb/modules/ngentouch_module/module.prop | cut -f 2 -d '=' | sed 's/v//g')
 
 Usage: ntm [OPTION]
 
@@ -190,7 +194,7 @@ update_module() {
         WGET="/data/data/com.termux/files/usr/bin/wget"
     fi
 
-    cd /sdcard
+    cd /sdcard || exit
 
     # Variables
     MODPATH=/data/adb/modules/ngentouch_module
@@ -244,7 +248,7 @@ update_module() {
 
     # Import variables from latest.txt
     if [ -f "latest.txt" ]; then
-        source latest.txt
+        . latest.txt
     else
         echo "Couldn't find file 'latest.txt'"
         echo
@@ -279,8 +283,8 @@ update_module() {
             echo
         fi
 
-        echo -n "Download and Install? [y/n]"
-        echo -n ": "
+        printf "Download and Install? [y/n]"
+        printf ": "
         read -r pilihan
 
         case "$pilihan" in
@@ -298,13 +302,13 @@ update_module() {
             echo
             echo "Installing the module..."
             echo
-            if $MGR $ARG $FNAME; then
+            if $MGR "$ARG" $FNAME; then
                 echo
                 cleanup
                 echo "Done"
                 echo
-                echo -n "Reboot now? [y/n]"
-                echo -n ": "
+                printf "Reboot now? [y/n]"
+                printf ": "
                 read -r choice
                 case "$choice" in
                 y | Y) reboot ;;
@@ -342,15 +346,13 @@ update_module() {
     fi
 }
 
-option_list=(
-    "--apply"
-    "--remove"
-    "--update"
-    "--help"
-    "help"
-)
+option_list="--apply
+    --remove
+    --update
+    --help
+    help"
 
-if [ $(id -u) -ne 0 ]; then
+if [ "$(id -u)" -ne 0 ]; then
     echo "Please run as superuser (SU)"
     exit 1
 fi
@@ -375,7 +377,7 @@ case "$1" in
 Try: 'ntm --help' for more information."
         exit 1
     else
-        for i in "${option_list[@]}"; do
+        for i in $option_list; do
             if [ "$i" = "$1" ]; then
                 valid=true
             fi
