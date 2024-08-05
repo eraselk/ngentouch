@@ -4,15 +4,24 @@
 # You can steal/modify/copy any codes in this script without any credits.
 #
 
-normal=true
-
-pengaturan() {
-    if $normal; then
-        settings "$@"
-    fi
-}
+normal=false
 
 run() {
+    set -x
+
+    # Backup SELinux mode
+    if $normal; then
+        case "$(cat /sys/fs/selinux/enforce 2>/dev/null || getenforce 2>/dev/null)" in
+        "0") permissive=true ;;
+        "1") permissive=false ;;
+        "Permissive") permissive=true ;;
+        "Enforcing") permissive=false ;;
+        esac
+    fi
+
+    if $normal && ! $permissive; then
+        setenforce 0 || echo -n "0" >/sys/fs/selinux/enforce
+    fi
 
     # usage: write <VALUE> <PATH>
     write() {
@@ -24,53 +33,26 @@ run() {
         fi
     }
 
-    # usage: set_prop <PROPERTY> <VALUE>
-    set_prop() {
-        resetprop -n "$1" "$2"
-    }
-
-    ## end
-
-    set_prop ro.input.resampling 1
-    set_prop touch.pressure.scale 0.001
-    set_prop touch.size.calibration diameter
-    set_prop touch.pressure.calibration amplitude
-    set_prop touch.size.scale 1
-    set_prop touch.size.bias 0
-    set_prop touch.size.isSummed 1
-    set_prop touch.orientation.calibration none
-    set_prop touch.distance.calibration none
-    set_prop touch.distance.scale 0
-    set_prop touch.coverage.calibration box
-    set_prop touch.gestureMode spots
-    set_prop ro.surface_flinger.max_frame_buffer_acquired_buffers 3
-    set_prop debug.input.normalizetouch true
-
-    if cat /proc/cpuinfo | grep "Hardware" | uniq | cut -d ":" -f 2 | grep -q 'Qualcomm'; then
-        set_prop persist.vendor.qti.inputopts.movetouchslop 0.1
-        set_prop persist.vendor.qti.inputopts.enable true
-    fi
-
-    pengaturan put secure multi_press_timeout 200
-    pengaturan put secure long_press_timeout 200
-    pengaturan put global block_untrusted_touches 0
-    pengaturan put system pointer_speed 7
+    settings put secure multi_press_timeout 200
+    settings put secure long_press_timeout 200
+    settings put global block_untrusted_touches 0
+    settings put system pointer_speed 7
 
     # Edge Fixer, Special for fog, rain, wind
     # Thanks to @Dahlah_Men
     edge=("edge_pressure" "edge_size" "edge_type")
     for row in ${edge[@]}; do
-        pengaturan put system $row 0
+        settings put system $row 0
     done
 
     edge2=("edge_mode_state_title" "pref_edge_handgrip")
     for row in ${edge2[@]}; do
-        pengaturan put global $row false
+        settings put global $row false
     done
 
     # Gimmick 696969
-    pengaturan put system high_touch_polling_rate_enable 1
-    pengaturan put system high_touch_sensitivity_enable 1
+    settings put system high_touch_polling_rate_enable 1
+    settings put system high_touch_sensitivity_enable 1
 
     i="/proc/touchpanel"
     write "1" "$i/game_switch_enable"
@@ -110,30 +92,57 @@ run() {
     renice -n -20 -p $input_dispatcher
     chrt -r -p 99 $input_dispatcher
 
+    # change back selinux mode
+    if $normal && ! $permissive; then
+        setenforce 1 || echo -n "1" >/sys/fs/selinux/enforce
+    fi
+
     # always return success
     true
 }
 
 remove() {
     (
-        pengaturan delete system pointer_speed
-        pengaturan delete secure multi_press_timeout
-        pengaturan delete secure long_press_timeout
-        pengaturan delete global block_untrusted_touches
+        # Backup SELinux mode
+        if $normal; then
+            case "$(cat /sys/fs/selinux/enforce 2>/dev/null || getenforce 2>/dev/null)" in
+            "0") permissive=true ;;
+            "1") permissive=false ;;
+            "Permissive") permissive=true ;;
+            "Enforcing") permissive=false ;;
+            esac
+        fi
+
+        if $normal && ! $permissive; then
+            setenforce 0 || echo -n "0" >/sys/fs/selinux/enforce
+        fi
+
+        settings delete system pointer_speed
+        settings delete secure multi_press_timeout
+        settings delete secure long_press_timeout
+        settings delete global block_untrusted_touches
+
         edge=("edge_pressure" "edge_size" "edge_type")
         for row in ${edge[@]}; do
-            pengaturan delete system $row
+            settings delete system $row
         done
+
         edge2=("edge_mode_state_title" "pref_edge_handgrip")
         for row in ${edge2[@]}; do
-            pengaturan delete global $row
+            settings delete global $row
         done
-        pengaturan delete system high_touch_polling_rate_enable
-        pengaturan delete system high_touch_sensitivity_enable
+
+        settings delete system high_touch_polling_rate_enable
+        settings delete system high_touch_sensitivity_enable
         cmd package compile -m verify -f com.android.systemui
         cmd package compile -m assume-verified -f com.android.systemui --compile-filter=assume-verified -c --reset
         rm -rf /data/dalvik-cache/*
         touch /data/adb/modules/ngentouch_module/remove
+
+        if $normal && ! $permissive; then
+            setenforce 1 || echo -n "1" >/sys/fs/selinux/enforce
+        fi
+
     ) >/dev/null 2>&1
     echo "Done, please reboot to apply changes."
     exit 0
@@ -349,7 +358,7 @@ fi
 me="$(basename "$0")"
 case "$1" in
 "--apply")
-    run >/dev/null 2>&1
+    run >/sdcard/ngentouch.log 2>&1
     ;;
 "--remove")
     remove
