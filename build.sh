@@ -12,7 +12,7 @@ if ! command -v zip >/dev/null 2>&1; then
     echo
     exit 1
 fi
-cd $(dirname "$0")/src
+cd $(pwd)/src
 VER="$(cat ./module.prop | grep 'version=' | cut -f 2 -d '=' | awk '{print $1}')"
 build_date=$(date +"%y%m%d")
 stamp=$(date +"%H%M%S")
@@ -29,7 +29,7 @@ if [ "$remove_bak" = "1" ]; then
     find . -type f -name '*.bak*' -exec rm -f {} +
 fi
 
-dir="$(dirname "$0")/system/bin"
+dir="$(pwd)/system/bin"
 mv -f $dir/ntm.sh $dir/ntm
 
 find .. -maxdepth 1 -type f -name *$module_name* -exec rm -f {} +

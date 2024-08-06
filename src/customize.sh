@@ -2,16 +2,20 @@
 
 : '----- Module Installer -----'
 
-# bool
-SKIPMOUNT=false
-PROPFILE=true
-POSTFSDATA=false
-LATESTARTSERVICE=true
+SKIPUNZIP=1
+
+cmd_pkg() {
+		a="cmd package"
+		if cmd package "$@" >/dev/null 2>&1; then
+			ui_print "[INFO] $a $* : Success"
+		else
+			ui_print "[ERROR] $a $* : Failed"
+		fi
+}
 
 # Debugging Mode: bool
 DEBUG=true
 
-print_modname() {
 	ui_print ""
 	ui_print "░█▀█░█▀▀░█▀▀░█▀█░▀█▀░█▀█░█░█░█▀▀░█░█
 ░█░█░█░█░█▀▀░█░█░░█░░█░█░█░█░█░░░█▀█
@@ -20,18 +24,6 @@ print_modname() {
 	ui_print "   Feel The Responsiveness and Smoothness!  "
 	ui_print ""
 	sleep 1
-}
-
-on_install() {
-
-	cmd_pkg() {
-		a="cmd package"
-		if cmd package "$@" >/dev/null 2>&1; then
-			ui_print "[INFO] $a $* : Success"
-		else
-			ui_print "[ERROR] $a $* : Failed"
-		fi
-	}
 
 	rm -rf /data/ngentouch
 
@@ -79,37 +71,10 @@ on_install() {
 	else
 		ui_print "  Test 3: FAILED"
 		test3=false
-	fi
-
-	case "$(getenforce 2>/dev/null || cat /sys/fs/selinux/enforce 2>/dev/null)" in
-	Permissive) work=true && permissive=true ;;
-	Enforcing) work=true && permissive=false ;;
-	0) work=true && permissive=true ;;
-	1) work=true && permissive=false ;;
-	*) work=false ;;
-	esac
-
-	if setenforce 0 2>/dev/null || printf "0" >/sys/fs/selinux/enforce 2>/dev/null; then
-		ui_print "  Test 4: PASSED"
-		test4=true
-	else
-		ui_print "  Test 4: FAILED"
-		test4=false
-	fi
-
-	if $work && $test4; then
-		ui_print "  Test 5: PASSED"
-		test5=true
-		if ! $permissive; then
-			setenforce 1 || printf "1" >/sys/fs/selinux/enforce
-		fi
-	else
-		ui_print "  Test 5: FAILED"
-		test5=false
-	fi
+        fi
 
 	ui_print ""
-	if $test1 && $test2 && $test3 && $test4 && $test5; then
+	if $test1 && $test2 && $test3; then
 		ui_print "  Result: all commands work properly"
 		normal=true
 	else
@@ -119,17 +84,20 @@ on_install() {
 
 	ui_print ""
 
-	if $normal; then
-		sed -i "s/normal=false/normal=true/g" $MODPATH/system/bin/ntm
-		if cat /proc/cpuinfo | grep "Hardware" | uniq | cut -d ":" -f 2 | grep -q 'Qualcomm'; then
-			echo 'persist.vendor.qti.inputopts.movetouchslop=0.1' >>$MODPATH/system.prop
-			echo 'persist.vendor.qti.inputopts.enable=true' >>$MODPATH/system.prop
-		fi
+	unzip -o "$ZIPFILE" 'system/*' -d "$MODPATH" >&2
+	unzip -o "$ZIPFILE" 'service.sh' -d "$MODPATH" >&2
+	unzip -o "$ZIPFILE" 'system.prop' -d "$MODPATH" >&2
+	mv -f $TMPDIR/module.prop $MODPATH
+
+	if ! $normal; then
+		rm -rf $MODPATH
+                rm -rf $NVBASE/modules/$MODID
+                abort
 	fi
 
-	unzip -o "$ZIPFILE" 'system/*' -d "$MODPATH" >&2
-}
+        if cat /proc/cpuinfo | grep "Hardware" | uniq | cut -d ":" -f 2 | grep -q 'Qualcomm'; then
+                        echo 'persist.vendor.qti.inputopts.movetouchslop=0.1' >>$MODPATH/system.prop
+                        echo 'persist.vendor.qti.inputopts.enable=true' >>$MODPATH/system.prop
+                fi
 
-set_permissions() {
 	set_perm_recursive "$MODPATH" 0 0 0777 0777
-}

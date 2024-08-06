@@ -4,24 +4,7 @@
 # You can steal/modify/copy any codes in this script without any credits.
 #
 
-normal=false
-
 run() {
-    set -x
-
-    # Backup SELinux mode
-    if $normal; then
-        case "$(cat /sys/fs/selinux/enforce 2>/dev/null || getenforce 2>/dev/null)" in
-        "0") permissive=true ;;
-        "1") permissive=false ;;
-        "Permissive") permissive=true ;;
-        "Enforcing") permissive=false ;;
-        esac
-    fi
-
-    if $normal && ! $permissive; then
-        setenforce 0 || printf "0" >/sys/fs/selinux/enforce
-    fi
 
     # usage: write <VALUE> <PATH>
     write() {
@@ -93,31 +76,12 @@ done
     renice -n -20 -p "$input_dispatcher"
     chrt -r -p 99 "$input_dispatcher"
 
-    # change back selinux mode
-    if $normal && ! $permissive; then
-        setenforce 1 || printf "1" >/sys/fs/selinux/enforce
-    fi
-
     # always return success
     true
 }
 
 remove() {
     (
-        # Backup SELinux mode
-        if $normal; then
-            case "$(cat /sys/fs/selinux/enforce 2>/dev/null || getenforce 2>/dev/null)" in
-            "0") permissive=true ;;
-            "1") permissive=false ;;
-            "Permissive") permissive=true ;;
-            "Enforcing") permissive=false ;;
-            esac
-        fi
-
-        if $normal && ! $permissive; then
-            setenforce 0 || printf "0" >/sys/fs/selinux/enforce
-        fi
-
         settings delete system pointer_speed
         settings delete secure multi_press_timeout
         settings delete secure long_press_timeout
@@ -142,11 +106,6 @@ remove() {
         cmd package compile -m assume-verified -f com.android.systemui --compile-filter=assume-verified -c --reset
         rm -rf /data/dalvik-cache/*
         touch /data/adb/modules/ngentouch_module/remove
-
-        if $normal && ! $permissive; then
-            setenforce 1 || printf "1" >/sys/fs/selinux/enforce
-        fi
-
     ) >/dev/null 2>&1
     echo "Done, please reboot to apply changes."
     exit 0
@@ -244,7 +203,8 @@ update_module() {
     echo
 
     # Download latest.txt
-    $WGET "https://github.com/eraselk/ngentouch/raw/main/latest.txt" -O latest.txt >/dev/null 2>&1
+    BRANCH="main"
+    $WGET "https://github.com/eraselk/ngentouch/raw/${BRANCH}/latest.txt" -O latest.txt >/dev/null 2>&1
 
     # Import variables from latest.txt
     if [ -f "latest.txt" ]; then
