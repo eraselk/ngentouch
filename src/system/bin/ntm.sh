@@ -208,7 +208,7 @@ update_module() {
 
     # Import variables from latest.txt
     if [ -f "latest.txt" ]; then
-        . latest.txt
+        source latest.txt
     else
         echo "Couldn't find file 'latest.txt'"
         echo
@@ -320,7 +320,7 @@ fi
 me="$(basename "$0")"
 case "$1" in
 "--apply")
-    run >/sdcard/ngentouch.log 2>&1
+    run >/dev/null 2>&1
     ;;
 "--remove")
     remove
