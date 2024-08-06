@@ -1,6 +1,4 @@
-VER="v4.0.5.stable.240726195406"
-VERCODE="405"
+VER="v4.0.5.test"
+VERCODE="999"
 LINK="https://github.com/eraselk/ngentouch/releases/download/v4.0.5_stable/NgenTouch-v4.0.5.stable-240726195406.zip"
-CHANGELOG="• Menambahkan kondisi jika hasil abnormal pada installer
-• Memperbaiki beberapa kesalahan sintaksis
-• dan lain-lain"
+CHANGELOG="Test"
