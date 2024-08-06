@@ -49,8 +49,8 @@ run() {
 
     # bump sampling rate
     find /sys -type f -name bump_sample_rate | while read -r boost_sr; do
-    write "1" "$boost_sr"
-done
+        write "1" "$boost_sr"
+    done
 
     write "1" /sys/module/msm_performance/parameters/touchboost
     write "1" /sys/power/pnpmgr/touch_boost
@@ -106,7 +106,7 @@ remove() {
         cmd package compile -m assume-verified -f com.android.systemui --compile-filter=assume-verified -c --reset
         rm -rf /data/dalvik-cache/*
         touch /data/adb/modules/ngentouch_module/remove
-    ) >/dev/null 2>&1
+    ) &>/dev/null
     echo "Done, please reboot to apply changes."
     exit 0
 }
@@ -114,14 +114,15 @@ remove() {
 help_menu() {
     cat <<EOF
 NgenTouch Module Manager
-Version $(grep 'version=' /data/adb/modules/ngentouch_module/module.prop | cut -f 2 -d '=' | sed 's/v//g')
+Version $(grep 'version=' /data/adb/modules/ngentouch_module/module.prop | cut -f 2 -d '=' | tail -d 'v')
 
-Usage: ntm [OPTION]
+Usage: ntm --apply|--remove|--update|--help|help|--version|-v
 
 --apply         	Apply touch tweaks [SERVICE MODE]
 --remove                Remove NgenTouch module
 --update                Update NgenTouch module [WGET REQUIRED]
---help, help            Show this message
+--help|help            Show this message
+--version|-v        Show version
 
 Bug or error reports, feature requests, discussions: https://t.me/gudangtoenixzdisc.
 EOF
@@ -129,7 +130,7 @@ EOF
 
 update_module() {
     # Check if 'com.termux' package and wget are installed
-    if ! cmd package -l | grep -q 'com.termux' || ! command -v /data/data/com.termux/files/usr/bin/wget >/dev/null 2>&1; then
+    if ! cmd package -l | grep -q 'com.termux' || ! command -v /data/data/com.termux/files/usr/bin/wget &>/dev/null; then
         echo "Searching BusyBox binary in /data/adb..."
         BB="$(find /data/adb -type f -name busybox | head -n1)"
 
@@ -138,7 +139,7 @@ update_module() {
             echo
             WGET="$BB wget"
             echo "Testing wget..."
-            if $WGET --help >/dev/null 2>&1; then
+            if $WGET --help &>/dev/null; then
                 echo "OK"
                 echo
             else
@@ -159,15 +160,6 @@ update_module() {
     MODPATH=/data/adb/modules/ngentouch_module
     MODVER="$(grep 'version=' $MODPATH/module.prop | cut -d '=' -f 2)"
     MODVERCODE="$(grep 'versionCode=' $MODPATH/module.prop | cut -d '=' -f 2)"
-
-    case "$(getprop ro.product.cpu.abi)" in
-    arm64-v8a) ARCH="64" ;;
-    armeabi-v7a) ARCH="32" ;;
-    esac
-
-    KASU="/data/adb/ksu/bin/ksud"
-    APCH="/data/adb/ap/bin/apd"
-    MAGISK="/data/adb/magisk/magisk$ARCH"
     FNAME="ngentouch.zip"
 
     # Cleanup function
@@ -179,21 +171,21 @@ update_module() {
     # Clean unnecessary files
     cleanup
 
-    # Set up MGR and ARG variables
-    if [ -f "$KASU" ]; then
-        MGR="$KASU"
+    # Check root method
+    if command -v ksud &>/dev/null; then
+        MGR="ksud"
         ARG="module install"
-    elif [ -f "$APCH" ]; then
-        MGR="$APCH"
+    elif command -v apd &>/dev/null; then
+        MGR="apd"
         ARG="module install"
-    elif [ -f "$MAGISK" ]; then
-        MGR="$MAGISK"
+    elif command -v magisk &>/dev/null; then
+        MGR="magisk"
         ARG="--install-module"
     fi
 
     echo "Checking for update..."
     # Check internet connection
-    if ping -c 1 8.8.8.8 >/dev/null 2>&1; then
+    if ping -c 1 8.8.8.8 &>/dev/null; then
         echo "[ • ] Connected (Fast Connect)"
     else
         echo "[ ! ] No internet connection"
@@ -204,7 +196,7 @@ update_module() {
 
     # Download latest.txt
     BRANCH="main"
-    $WGET "https://github.com/eraselk/ngentouch/raw/${BRANCH}/latest.txt" -O latest.txt >/dev/null 2>&1
+    $WGET "https://github.com/eraselk/ngentouch/raw/${BRANCH}/latest.txt" -O latest.txt &>/dev/null
 
     # Import variables from latest.txt
     if [ -f "latest.txt" ]; then
@@ -251,7 +243,7 @@ update_module() {
         y | Y)
             echo
             echo "Downloading the latest module..."
-            if $WGET "$LINK" -O "$FNAME" >/dev/null 2>&1; then
+            if $WGET "$LINK" -O "$FNAME" &>/dev/null; then
                 echo "Done"
             else
                 echo "Failed."
@@ -306,10 +298,16 @@ update_module() {
     fi
 }
 
+version() {
+    grep 'version=' /data/adb/modules/ngentouch_module/module.prop | cut -f 2 -d '=' | tail -d 'v'
+}
+
 option_list="--apply
     --remove
     --update
     --help
+    --version
+    -v
     help"
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -320,7 +318,7 @@ fi
 me="$(basename "$0")"
 case "$1" in
 "--apply")
-    run >/dev/null 2>&1
+    run &>/dev/null
     ;;
 "--remove")
     remove
@@ -330,6 +328,9 @@ case "$1" in
     ;;
 "--help" | "help")
     help_menu
+    ;;
+"--version" | "-v")
+    version
     ;;
 *)
     if [ -z "$1" ]; then

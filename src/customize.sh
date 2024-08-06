@@ -6,7 +6,7 @@ SKIPUNZIP=1
 
 cmd_pkg() {
 		a="cmd package"
-		if cmd package "$@" >/dev/null 2>&1; then
+		if cmd package "$@" &>/dev/null; then
 			ui_print "[INFO] $a $* : Success"
 		else
 			ui_print "[ERROR] $a $* : Failed"
@@ -78,26 +78,36 @@ DEBUG=true
 		ui_print "  Result: all commands work properly"
 		normal=true
 	else
-		ui_print "  Result: abnormal, maybe the module won't working.."
+		ui_print "  Result: -"
 		normal=false
 	fi
 
 	ui_print ""
 
-	unzip -o "$ZIPFILE" 'system/*' -d "$MODPATH" >&2
+	if ! $normal; then
+		rm -rf $MODPATH
+        rm -rf $NVBASE/modules/$MODID
+        abort "! Not supported"
+	fi
+	
+    unzip -o "$ZIPFILE" 'system/*' -d "$MODPATH" >&2
 	unzip -o "$ZIPFILE" 'service.sh' -d "$MODPATH" >&2
 	unzip -o "$ZIPFILE" 'system.prop' -d "$MODPATH" >&2
 	mv -f $TMPDIR/module.prop $MODPATH
+	
+	case "$ARCH" in
+	    "arm64") unzip -o "$ZIPFILE" 'boost64' -d "$MODPATH/system/bin/boost" >&2 ;;
+	    "arm") unzip -o "$ZIPFILE" 'boost32' -d "$MODPATH/system/bin/boost" >&2 ;;
+	    *)
+	        rm -rf $MODPATH
+	        rm -rf $NVBASE/modules/$MODID
+	        abort "! $ARCH arch is not supported"
+	    ;;
+    esac
 
-	if ! $normal; then
-		rm -rf $MODPATH
-                rm -rf $NVBASE/modules/$MODID
-                abort
-	fi
-
-        if cat /proc/cpuinfo | grep "Hardware" | uniq | cut -d ":" -f 2 | grep -q 'Qualcomm'; then
-                        echo 'persist.vendor.qti.inputopts.movetouchslop=0.1' >>$MODPATH/system.prop
-                        echo 'persist.vendor.qti.inputopts.enable=true' >>$MODPATH/system.prop
-                fi
+    if cat /proc/cpuinfo | grep "Hardware" | uniq | cut -d ":" -f 2 | grep -q 'Qualcomm'; then
+        echo 'persist.vendor.qti.inputopts.movetouchslop=0.1' >>$MODPATH/system.prop
+        echo 'persist.vendor.qti.inputopts.enable=true' >>$MODPATH/system.prop
+    fi
 
 	set_perm_recursive "$MODPATH" 0 0 0777 0777
