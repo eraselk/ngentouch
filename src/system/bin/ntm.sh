@@ -114,7 +114,7 @@ remove() {
 help_menu() {
     cat <<EOF
 NgenTouch Module Manager
-Version $(grep 'version=' /data/adb/modules/ngentouch_module/module.prop | cut -f 2 -d '=' | tail -d 'v')
+Version $(grep 'version=' /data/adb/modules/ngentouch_module/module.prop | cut -f 2 -d '=' | tr -d 'v')
 
 Usage: ntm --apply|--remove|--update|--help|help|--version|-v
 
@@ -299,7 +299,7 @@ update_module() {
 }
 
 version() {
-    grep 'version=' /data/adb/modules/ngentouch_module/module.prop | cut -f 2 -d '=' | tail -d 'v'
+    grep 'version=' /data/adb/modules/ngentouch_module/module.prop | cut -f 2 -d '=' | tr -d 'v'
 }
 
 option_list="--apply
