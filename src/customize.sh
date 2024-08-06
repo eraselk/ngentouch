@@ -93,11 +93,13 @@ DEBUG=true
     unzip -o "$ZIPFILE" 'system/*' -d "$MODPATH" >&2
 	unzip -o "$ZIPFILE" 'service.sh' -d "$MODPATH" >&2
 	unzip -o "$ZIPFILE" 'system.prop' -d "$MODPATH" >&2
+	unzip -o "$ZIPFILE" 'booster64' -d "$TMPDIR" >&2
+	unzip -o "$ZIPFILE" 'booster32' -d "$TMPDIR" >&2
 	mv -f $TMPDIR/module.prop $MODPATH
 	
 	case "$ARCH" in
-	    "arm64") unzip -o "$ZIPFILE" 'boost64' -d "$MODPATH/system/bin/boost" >&2 ;;
-	    "arm") unzip -o "$ZIPFILE" 'boost32' -d "$MODPATH/system/bin/boost" >&2 ;;
+        "arm64") mv -f $TMPDIR/booster64 $MODPATH/system/bin/booster ;;
+        "arm") mv -f $TMPDIR/booster32 $MODPATH/system/bin/booster ;;
 	    *)
 	        rm -rf $MODPATH
 	        rm -rf $NVBASE/modules/$MODID

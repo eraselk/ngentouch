@@ -2,4 +2,9 @@
 while [ -z "$(getprop sys.boot_completed)" ]; do
 	sleep 15
 done
+
+# exec main script
 ntm --apply
+
+# exec booster
+/system/bin/booster
