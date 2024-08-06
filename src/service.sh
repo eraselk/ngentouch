@@ -1,5 +1,5 @@
 #!/system/bin/sh
 while [ -z "$(getprop sys.boot_completed)" ]; do
-	sleep 20
+	sleep 15
 done
 ntm --apply
