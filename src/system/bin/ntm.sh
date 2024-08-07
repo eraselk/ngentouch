@@ -102,9 +102,7 @@ remove() {
 
         settings delete system high_touch_polling_rate_enable
         settings delete system high_touch_sensitivity_enable
-        cmd package compile -m verify -f com.android.systemui
-        cmd package compile -m assume-verified -f com.android.systemui --compile-filter=assume-verified -c --reset
-        rm -rf /data/dalvik-cache/*
+
         touch /data/adb/modules/ngentouch_module/remove
     ) &>/dev/null
     echo "Done, please reboot to apply changes."
