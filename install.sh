@@ -1,10 +1,10 @@
 #!/system/bin/sh
 # Install from source
 
-if ! command -v su &>/dev/null; then
+command -v su &>/dev/null || {
 echo "Are you root user??" >&2
 exit 1
-fi
+}
 
 su -c "
 

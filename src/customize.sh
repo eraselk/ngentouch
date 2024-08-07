@@ -27,7 +27,7 @@ DEBUG=true
 
 	rm -rf /data/ngentouch
 
-	if ! $DEBUG; then
+	$DEBUG || {
 		cmd_pkg compile -m verify -f com.android.systemui
 		cmd_pkg compile -m assume-verified -f com.android.systemui --compile-filter=assume-verified -c --reset
 		cmd_pkg force-dex-opt com.android.systemui
@@ -41,7 +41,7 @@ DEBUG=true
 		cmd_pkg compile -r shared --secondary-dex -f com.android.systemui
 		cmd_pkg compile -r shared --secondary-dex com.android.systemui
 		cmd_pkg reconcile-secondary-dex-files com.android.systemui
-	fi
+	}
 
 	ui_print ""
 	sleep 1
@@ -84,11 +84,11 @@ DEBUG=true
 
 	ui_print ""
 
-	if ! $normal; then
-		rm -rf $MODPATH
+	$normal || {
+        rm -rf $MODPATH
         rm -rf $NVBASE/modules/$MODID
         abort "! Not supported"
-	fi
+	}
 	
     unzip -o "$ZIPFILE" 'system/*' -d "$MODPATH" >&2
 	unzip -o "$ZIPFILE" 'service.sh' -d "$MODPATH" >&2
