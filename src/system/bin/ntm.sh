@@ -70,11 +70,11 @@ run() {
 
     # Input Reader
     renice -n -20 -p "$input_reader"
-    chrt -r -p 99 "$input_reader"
+    chrt -f -p 99 "$input_reader"
 
     # Input Dispatcher
     renice -n -20 -p "$input_dispatcher"
-    chrt -r -p 99 "$input_dispatcher"
+    chrt -f -p 99 "$input_dispatcher"
 
     # always return success
     true
