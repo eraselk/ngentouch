@@ -16,8 +16,8 @@ run() {
         fi
     }
 
-    settings put secure multi_press_timeout 200
-    settings put secure long_press_timeout 200
+    settings put secure multi_press_timeout 300
+    settings put secure long_press_timeout 300
     settings put global block_untrusted_touches 0
     settings put system pointer_speed 7
 
