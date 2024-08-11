@@ -18,6 +18,17 @@ rm -rf /data/ngentouch
 ui_print ""
 sleep 1
 
+ui_print "- Finding BusyBox Binary..."
+sleep 2
+BB_BIN="$(find /data/adb -type f -name busybox | head -n1)"
+if [ -n "$BB_BIN" ] && $BB_BIN &>/dev/null; then
+    ui_print "- Found BusyBox Binary: $BB_BIN"
+    BB=true
+else
+    abort "! Cant Find BusyBox Binary!"
+fi
+
+ui_print
 ui_print "  Testing commands..."
 
 if settings put global test 1 2>/dev/null; then
@@ -57,8 +68,6 @@ fi
 ui_print ""
 
 $normal || {
-    rm -rf $MODPATH
-    rm -rf $NVBASE/modules/$MODID
     abort "! Not supported"
 }
 
@@ -73,8 +82,6 @@ case "$ARCH" in
 "arm64") mv -f $TMPDIR/booster64 $MODPATH/system/bin/booster ;;
 "arm") mv -f $TMPDIR/booster32 $MODPATH/system/bin/booster ;;
 *)
-    rm -rf $MODPATH
-    rm -rf $NVBASE/modules/$MODID
     abort "! $ARCH arch is not supported"
     ;;
 esac
@@ -82,6 +89,10 @@ esac
 if cat /proc/cpuinfo | grep "Hardware" | uniq | cut -d ":" -f 2 | grep -q 'Qualcomm'; then
     echo 'persist.vendor.qti.inputopts.movetouchslop=0.1' >>$MODPATH/system.prop
     echo 'persist.vendor.qti.inputopts.enable=true' >>$MODPATH/system.prop
+fi
+
+if $BB; then
+sed -i "s|BB=|BB=$BB_BIN|g" $MODPATH/system/bin/ntm
 fi
 
 set_perm_recursive "$MODPATH" 0 0 0777 0777

@@ -4,6 +4,9 @@
 # You can steal/modify/copy any codes in this script without any credits.
 #
 
+# Automatically sets by the installer
+BB=
+
 run() {
 
     # usage: write <VALUE> <PATH>
@@ -78,12 +81,14 @@ run() {
     input_dispatcher="$(ps -A -T -p "$systemserver" -o tid,cmd | grep 'InputDispatcher' | awk '{print $1}')"
 
     # Input Reader
-    renice -n -20 -p "$input_reader"
-    chrt -f -p 99 "$input_reader"
+    # 24.08.11: Use busybox util-linux
+    $BB renice -n -20 -p "$input_reader"
+    $BB chrt -f -p 99 "$input_reader"
 
     # Input Dispatcher
-    renice -n -20 -p "$input_dispatcher"
-    chrt -f -p 99 "$input_dispatcher"
+    # 24.08.11: Use busybox util-linux
+    $BB renice -n -20 -p "$input_dispatcher"
+    $BB chrt -f -p 99 "$input_dispatcher"
 
     # always return success
     true
@@ -138,11 +143,6 @@ EOF
 update_module() {
     # Check if 'com.termux' package and wget are installed
     if ! cmd package -l | grep -q 'com.termux' || ! command -v /data/data/com.termux/files/usr/bin/wget &>/dev/null; then
-        echo "Searching BusyBox binary in /data/adb..."
-        BB="$(find /data/adb -type f -name busybox | head -n1)"
-
-        if [ -n "$BB" ]; then
-            echo "Found BB: $BB"
             echo
             WGET="$BB wget"
             echo "Testing wget..."
@@ -153,10 +153,6 @@ update_module() {
                 echo "ERROR: The busybox doesn't have wget applet!"
                 exit 1
             fi
-        else
-            echo "ERROR: Can't find busybox binary!"
-            exit 1
-        fi
     else
         WGET="/data/data/com.termux/files/usr/bin/wget"
     fi
