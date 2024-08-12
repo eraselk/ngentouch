@@ -19,7 +19,7 @@ run() {
         fi
     }
 
-    settings put secure multi_press_timeout 300
+    settings put secure multi_press_timeout 299
     settings put secure long_press_timeout 300
     settings put global block_untrusted_touches 0
     settings put system pointer_speed 7
@@ -66,15 +66,15 @@ run() {
     write "1" /proc/perfmgr/tchbst/kernel/tb_enable
     write "1" /sys/devices/virtual/touch/touch_boost
     write "1" /sys/module/msm_perfmon/parameters/touch_boost_enable
-      
+
     # SF Tweaks from HuoTouch
     fps_raw=$(dumpsys SurfaceFlinger | grep refresh-rate | awk '{t=$0;gsub(/.*: |.fps*/,"",t);print t}' | cut -d '.' -f1 | xargs echo)
     fps_a=$(echo "scale=7;a=1000/${fps_raw};if(length(a)==scale(a)) print 0;print a" | bc)
     fps_b=$(echo "scale=7;a=$fps_a*1000000;if(length(a)==scale(a)) print 0;print a" | bc)
     fun_fps=${fps_b%.*}
-    
+
     resetprop -n debug.sf.phase_offset_threshold_for_next_vsync_ns $fun_fps
-    
+
     # InputDispatcher, and InputReader tweaks
     systemserver="$(pidof -s system_server)"
     input_reader="$(ps -A -T -p "$systemserver" -o tid,cmd | grep 'InputReader' | awk '{print $1}')"
@@ -143,16 +143,16 @@ EOF
 update_module() {
     # Check if 'com.termux' package and wget are installed
     if ! cmd package -l | grep -q 'com.termux' || ! command -v /data/data/com.termux/files/usr/bin/wget &>/dev/null; then
+        echo
+        WGET="$BB wget"
+        echo "Testing wget..."
+        if $WGET --help &>/dev/null; then
+            echo "OK"
             echo
-            WGET="$BB wget"
-            echo "Testing wget..."
-            if $WGET --help &>/dev/null; then
-                echo "OK"
-                echo
-            else
-                echo "ERROR: The busybox doesn't have wget applet!"
-                exit 1
-            fi
+        else
+            echo "ERROR: The busybox doesn't have wget applet!"
+            exit 1
+        fi
     else
         WGET="/data/data/com.termux/files/usr/bin/wget"
     fi
