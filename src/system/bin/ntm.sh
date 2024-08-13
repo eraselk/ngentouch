@@ -10,7 +10,7 @@ BB=
 prerr() {
     echo -e "$1\a" >&2
 }
-    
+
 run() {
 
     # usage: write <VALUE> <PATH>
@@ -161,7 +161,8 @@ update_module() {
         WGET="/data/data/com.termux/files/usr/bin/wget"
     fi
 
-    cd /sdcard || prerr "Can't cd into /sdcard!"; exit 1
+    cd /sdcard || prerr "Can't cd into /sdcard!"
+    exit 1
 
     # Variables
     MODPATH=/data/adb/modules/ngentouch_module
