@@ -154,7 +154,7 @@ update_module() {
             echo "OK"
             echo
         else
-            prerr "ERROR: The busybox doesn't have wget applet!\a"
+            prerr "ERROR: The busybox doesn't have wget applet!"
             exit 1
         fi
     else
