@@ -161,8 +161,10 @@ update_module() {
         WGET="/data/data/com.termux/files/usr/bin/wget"
     fi
 
-    cd /sdcard || prerr "Can't cd into /sdcard!"
-    exit 1
+    cd /sdcard || {
+        prerr "Can't cd into /sdcard!"
+        exit 1
+    }
 
     # Variables
     MODPATH=/data/adb/modules/ngentouch_module
@@ -302,6 +304,7 @@ New Version Code: $VERSIONCODE
 
 Please screenshot and report to chat group: @gudangtoenixzdisc
 "
+        cleanup
         exit 1
     fi
 }
