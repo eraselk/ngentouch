@@ -59,30 +59,32 @@ run() {
         write "1" "$boost_sr"
     done
 
+    # Enable Touch boost
     write "1" /sys/module/msm_performance/parameters/touchboost
     write "1" /sys/power/pnpmgr/touch_boost
-    write "7035" /sys/class/touch/switch/set_touchscreen
-    write "8002" /sys/class/touch/switch/set_touchscreen
-    write "11000" /sys/class/touch/switch/set_touchscreen
-    write "13060" /sys/class/touch/switch/set_touchscreen
-    write "14005" /sys/class/touch/switch/set_touchscreen
     write "enable 1" /proc/perfmgr/tchbst/user/usrtch
     write "1" /proc/perfmgr/tchbst/kernel/tb_enable
     write "1" /sys/devices/virtual/touch/touch_boost
     write "1" /sys/module/msm_perfmon/parameters/touch_boost_enable
 
-    # SF Tweaks from HuoTouch
-    fps_raw=$(dumpsys SurfaceFlinger | grep refresh-rate | awk '{t=$0;gsub(/.*: |.fps*/,"",t);print t}' | cut -d '.' -f1 | xargs echo)
-    fps_a=$(echo "scale=7;a=1000/${fps_raw};if(length(a)==scale(a)) print 0;print a" | bc)
-    fps_b=$(echo "scale=7;a=$fps_a*1000000;if(length(a)==scale(a)) print 0;print a" | bc)
-    fun_fps=${fps_b%.*}
+    write "7035" /sys/class/touch/switch/set_touchscreen
+    write "8002" /sys/class/touch/switch/set_touchscreen
+    write "11000" /sys/class/touch/switch/set_touchscreen
+    write "13060" /sys/class/touch/switch/set_touchscreen
+    write "14005" /sys/class/touch/switch/set_touchscreen
 
-    resetprop -n debug.sf.phase_offset_threshold_for_next_vsync_ns $fun_fps
+    # SF Tweaks from HuoTouch
+    rr=$(dumpsys SurfaceFlinger | grep refresh-rate | awk '{t=$0;gsub(/.*: |.fps*/,"",t);print t}' | cut -d '.' -f1 | xargs echo)
+    _rr=$(echo "scale=7;a=1000/${rr};if(length(a)==scale(a)) print 0;print a" | bc)
+    __rr=$(echo "scale=7;a=$_rr*1000000;if(length(a)==scale(a)) print 0;print a" | bc)
+    threshold=${__rr%.*}
+
+    resetprop -n debug.sf.phase_offset_threshold_for_next_vsync_ns $threshold
 
     # InputDispatcher, and InputReader tweaks
     systemserver="$(pidof -s system_server)"
-    input_reader="$(ps -A -T -p "$systemserver" -o tid,cmd | grep 'InputReader' | awk '{print $1}')"
-    input_dispatcher="$(ps -A -T -p "$systemserver" -o tid,cmd | grep 'InputDispatcher' | awk '{print $1}')"
+    input_reader="$(ps -ATp "$systemserver" -o tid,cmd | grep 'InputReader' | awk '{print $1}')"
+    input_dispatcher="$(ps -ATp "$systemserver" -o tid,cmd | grep 'InputDispatcher' | awk '{print $1}')"
 
     # Input Reader
     # 24.08.11: Use busybox util-linux
@@ -132,13 +134,16 @@ help_menu() {
 NgenTouch Module Manager
 Version $(grep 'version=' /data/adb/modules/ngentouch_module/module.prop | cut -f 2 -d '=' | tr -d 'v')
 
-Usage: ntm --apply|--remove|--update|--help|help|--version|-v
+Usage: $me --apply|--remove|--update|--help|help|--version|-v
 
 --apply         	Apply touch tweaks [SERVICE MODE]
 --remove                Remove NgenTouch module
 --update                Update NgenTouch module [WGET REQUIRED]
---help|help             Show this message
---version|-v            Show version
+--help                  Show this message
+--version               Show version
+-v                      Alias for --version
+help                    Alias for --help
+
 
 Bug or error reports, feature requests, discussions: https://t.me/gudangtoenixzdisc.
 EOF
@@ -345,17 +350,17 @@ case "$1" in
     ;;
 *)
     if [ -z "$1" ]; then
-        prerr "${me}: No option provided
-Try: 'ntm --help' for more information."
+        prerr "$me: No option provided
+Try: '$me --help' for more information."
         exit 1
     else
         for i in $option_list; do
-            if [ "$i" = "$1" ]; then
-                valid=true
+            if [ "$i" != "$1" ]; then
+                valid=false
             fi
         done
-        if [ "$valid" != true ]; then
-            prerr "${me}: Invalid option '$1'. See '${me} --help'."
+        if ! $valid; then
+            prerr "$me: Invalid option '$1'. See '$me --help'."
             exit 1
         fi
     fi
