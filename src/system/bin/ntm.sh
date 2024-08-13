@@ -134,11 +134,10 @@ help_menu() {
 NgenTouch Module Manager
 Version $(grep 'version=' /data/adb/modules/ngentouch_module/module.prop | cut -f 2 -d '=' | tr -d 'v')
 
-Usage: $me --apply|--remove|--update|--help|help|--version|-v
+Usage: $me --apply|--remove|--help|help|--version|-v
 
 --apply         	Apply touch tweaks [SERVICE MODE]
 --remove                Remove NgenTouch module
---update                Update NgenTouch module [WGET REQUIRED]
 --help                  Show this message
 --version               Show version
 -v                      Alias for --version
@@ -149,178 +148,12 @@ Bug or error reports, feature requests, discussions: https://t.me/gudangtoenixzd
 EOF
 }
 
-update_module() {
-    # Check if 'com.termux' package and wget are installed
-    if ! cmd package -l | grep -q 'com.termux' || ! command -v /data/data/com.termux/files/usr/bin/wget &>/dev/null; then
-        echo
-        WGET="$BB wget"
-        echo "Testing wget..."
-        if $WGET --help &>/dev/null; then
-            echo "OK"
-            echo
-        else
-            prerr "ERROR: The busybox doesn't have wget applet!"
-            exit 1
-        fi
-    else
-        WGET="/data/data/com.termux/files/usr/bin/wget"
-    fi
-
-    cd /sdcard || {
-        prerr "Can't cd into /sdcard!"
-        exit 1
-    }
-
-    # Variables
-    MODPATH=/data/adb/modules/ngentouch_module
-    MODVER="$(grep 'version=' $MODPATH/module.prop | cut -d '=' -f 2)"
-    MODVERCODE="$(grep 'versionCode=' $MODPATH/module.prop | cut -d '=' -f 2)"
-    FNAME="ngentouch.zip"
-
-    # Cleanup function
-    cleanup() {
-        find . -maxdepth 1 -type f -name "$FNAME" -exec rm -f {} +
-        find . -maxdepth 1 -type f -name '*latest*' -exec rm -f {} +
-    }
-
-    # Clean unnecessary files
-    cleanup
-
-    # Check root method
-    if command -v ksud &>/dev/null; then
-        MGR="ksud"
-        ARG="module install"
-    elif command -v apd &>/dev/null; then
-        MGR="apd"
-        ARG="module install"
-    elif command -v magisk &>/dev/null; then
-        MGR="magisk"
-        ARG="--install-module"
-    fi
-
-    echo "Checking for update..."
-    # Check internet connection
-    if ping -c 1 8.8.8.8 &>/dev/null; then
-        echo "[ • ] Connected (Fast Connect)"
-    else
-        prerr "[ ! ] No internet connection"
-        exit 1
-    fi
-
-    echo
-
-    # Download latest.txt
-    BRANCH="main"
-    $WGET "https://github.com/eraselk/ngentouch/raw/${BRANCH}/latest.txt" -O latest.txt &>/dev/null
-
-    # Import variables from latest.txt
-    if [ -f "latest.txt" ]; then
-        source latest.txt
-    else
-        prerr "Couldn't find file 'latest.txt'"
-        echo
-        cleanup
-        exit 1
-    fi
-
-    echo
-
-    VERSION="$VER"
-    VERSIONCODE="$VERCODE"
-    CL="$CHANGELOG"
-
-    # Check for updates
-    if [ "$MODVER" = "$VERSION" ] && [ "$VERSIONCODE" -eq "$MODVERCODE" ]; then
-        echo "No update available, you're on the latest version."
-        echo
-        cleanup
-        exit 0
-    elif [ "$MODVER" != "$VERSION" ] && [ "$VERSIONCODE" -lt "$MODVERCODE" ]; then
-        echo "You're on the Beta version. Please wait for the stable version."
-        echo
-        cleanup
-        exit 0
-    elif [ "$MODVER" != "$VERSION" ] && [ "$VERSIONCODE" -gt "$MODVERCODE" ]; then
-        echo "New Update available!"
-        echo "Version: $VERSION"
-        echo
-        if [ -n "$CL" ]; then
-            echo "--- Changelog ---"
-            echo "$CL"
-            echo
-        fi
-
-        printf "Download and Install? [y/n]"
-        printf ": "
-        read -r pilihan
-
-        case "$pilihan" in
-        y | Y)
-            echo
-            echo "Downloading the latest module..."
-            if $WGET "$LINK" -O "$FNAME" &>/dev/null; then
-                echo "Done"
-            else
-                prerr "Failed."
-                cleanup
-                exit 1
-            fi
-
-            echo
-            echo "Installing the module..."
-            echo
-            if $MGR "$ARG" $FNAME; then
-                echo
-                cleanup
-                echo "Done"
-                echo
-                printf "Reboot now? [y/n]"
-                printf ": "
-                read -r choice
-                case "$choice" in
-                y | Y) reboot ;;
-                n | N) exit 0 ;;
-                *) prerr "Invalid input, use y or n to answer." && exit 1 ;;
-                esac
-            else
-                echo
-                prerr "Failed."
-                cleanup
-                exit 1
-            fi
-            ;;
-        n | N)
-            cleanup
-            exit 0
-            ;;
-        *)
-            echo
-            prerr "Invalid input, use y or n to answer."
-            cleanup
-            exit 1
-            ;;
-        esac
-    else
-        prerr "----- Abnormal Version Detected -----
-Current Version: $MODVER
-New Version: $VERSION
-Current Version Code: $MODVERCODE
-New Version Code: $VERSIONCODE
-
-Please screenshot and report to chat group: @gudangtoenixzdisc
-"
-        cleanup
-        exit 1
-    fi
-}
-
 version() {
     grep 'version=' /data/adb/modules/ngentouch_module/module.prop | cut -f 2 -d '=' | tr -d 'v'
 }
 
 option_list="--apply
     --remove
-    --update
     --help
     --version
     -v
@@ -338,9 +171,6 @@ case "$1" in
     ;;
 "--remove")
     remove
-    ;;
-"--update")
-    update_module
     ;;
 "--help" | "help")
     help_menu
