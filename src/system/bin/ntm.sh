@@ -30,6 +30,7 @@ run() {
 
     # Edge Fixer, Special for fog, rain, wind
     # Thanks to @Dahlah_Men
+    
     edge="edge_pressure
     edge_size
     edge_type"
@@ -37,9 +38,9 @@ run() {
         settings put system "$row" 0
     done
 
-    edge2="edge_mode_state_title
+    edge="edge_mode_state_title
     pref_edge_handgrip"
-    for row in $edge2; do
+    for row in $edge; do
         settings put global "$row" false
     done
 
@@ -114,9 +115,9 @@ remove() {
             settings delete system "$row"
         done
 
-        edge2="edge_mode_state_title
+        edge="edge_mode_state_title
         pref_edge_handgrip"
-        for row in $edge2; do
+        for row in $edge; do
             settings delete global "$row"
         done
 
