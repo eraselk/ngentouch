@@ -137,8 +137,8 @@ Usage: ntm --apply|--remove|--update|--help|help|--version|-v
 --apply         	Apply touch tweaks [SERVICE MODE]
 --remove                Remove NgenTouch module
 --update                Update NgenTouch module [WGET REQUIRED]
---help|help            Show this message
---version|-v        Show version
+--help|help             Show this message
+--version|-v            Show version
 
 Bug or error reports, feature requests, discussions: https://t.me/gudangtoenixzdisc.
 EOF
