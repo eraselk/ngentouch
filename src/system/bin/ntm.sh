@@ -7,6 +7,10 @@
 # Automatically sets by the installer
 BB=
 
+prerr() {
+    echo -e "$1\a" >&2
+}
+    
 run() {
 
     # usage: write <VALUE> <PATH>
@@ -150,14 +154,14 @@ update_module() {
             echo "OK"
             echo
         else
-            echo "ERROR: The busybox doesn't have wget applet!"
+            prerr "ERROR: The busybox doesn't have wget applet!\a"
             exit 1
         fi
     else
         WGET="/data/data/com.termux/files/usr/bin/wget"
     fi
 
-    cd /sdcard || exit
+    cd /sdcard || prerr "Can't cd into /sdcard!"; exit 1
 
     # Variables
     MODPATH=/data/adb/modules/ngentouch_module
@@ -191,7 +195,7 @@ update_module() {
     if ping -c 1 8.8.8.8 &>/dev/null; then
         echo "[ • ] Connected (Fast Connect)"
     else
-        echo "[ ! ] No internet connection"
+        prerr "[ ! ] No internet connection"
         exit 1
     fi
 
@@ -205,7 +209,7 @@ update_module() {
     if [ -f "latest.txt" ]; then
         source latest.txt
     else
-        echo "Couldn't find file 'latest.txt'"
+        prerr "Couldn't find file 'latest.txt'"
         echo
         cleanup
         exit 1
@@ -249,7 +253,7 @@ update_module() {
             if $WGET "$LINK" -O "$FNAME" &>/dev/null; then
                 echo "Done"
             else
-                echo "Failed."
+                prerr "Failed."
                 cleanup
                 exit 1
             fi
@@ -268,11 +272,11 @@ update_module() {
                 case "$choice" in
                 y | Y) reboot ;;
                 n | N) exit 0 ;;
-                *) echo "Invalid input, use y or n to answer." && exit 1 ;;
+                *) prerr "Invalid input, use y or n to answer." && exit 1 ;;
                 esac
             else
                 echo
-                echo "Failed."
+                prerr "Failed."
                 cleanup
                 exit 1
             fi
@@ -283,20 +287,20 @@ update_module() {
             ;;
         *)
             echo
-            echo "Invalid input, use y or n to answer."
+            prerr "Invalid input, use y or n to answer."
             cleanup
             exit 1
             ;;
         esac
     else
-        echo "----- Abnormal Version Detected -----"
-        echo "Current Version: $MODVER"
-        echo "New Version: $VERSION"
-        echo "Current Version Code: $MODVERCODE"
-        echo "New Version Code: $VERSIONCODE"
-        echo
-        echo "Please screenshot and report to chat group: @gudangtoenixzdisc"
-        echo
+        prerr "----- Abnormal Version Detected -----
+Current Version: $MODVER
+New Version: $VERSION
+Current Version Code: $MODVERCODE
+New Version Code: $VERSIONCODE
+
+Please screenshot and report to chat group: @gudangtoenixzdisc
+"
         exit 1
     fi
 }
@@ -314,7 +318,7 @@ option_list="--apply
     help"
 
 if [ "$(id -u)" -ne 0 ]; then
-    echo "Please run as superuser (SU)"
+    prerr "Please run as superuser (SU)"
     exit 1
 fi
 
@@ -337,7 +341,7 @@ case "$1" in
     ;;
 *)
     if [ -z "$1" ]; then
-        echo "${me}: No option provided
+        prerr "${me}: No option provided
 Try: 'ntm --help' for more information."
         exit 1
     else
@@ -347,7 +351,7 @@ Try: 'ntm --help' for more information."
             fi
         done
         if [ "$valid" != true ]; then
-            echo "${me}: Invalid option '$1'. See '${me} --help'."
+            prerr "${me}: Invalid option '$1'. See '${me} --help'."
             exit 1
         fi
     fi
