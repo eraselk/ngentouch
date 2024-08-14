@@ -27,7 +27,7 @@ elif command -v magisk &>/dev/null; then
 fi
 
 MODULE_NAME='NgenTouch'
-ZIP_FILE=\$(find . -maxdepth 1 -type f -name '*.zip' -exec echo {} \;)
+ZIP_FILE=\$(find \$CURDIR -maxdepth 1 -type f -name '*.zip' -exec echo {} \;)
 
 if [ -z \$ZIP_FILE ]; then
     pr_err 'Zip file not found in this directory'
