@@ -1,8 +1,8 @@
 ## NgenTouch Module
 ### Version
 ```
-STABLE => v4.0.7
-MAIN   => v4.0.7
+STABLE => v4.0.6
+MAIN   => v4.0.6
 ```
 
 > [!WARNING]
