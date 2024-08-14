@@ -28,7 +28,7 @@ VERCODE="$(grep 'versionCode=' ./module.prop | cut -f 2 -d '=')"
 zip_name="${module_name}-${VER}-${build_date}${time_stamp}.zip"
 
 sed -i "s/version=.*/version=$VER.${build_date}${time_stamp}/g" ./module.prop
-sed -i "s/versionCode=.*/versionCode=${VERCODE}${build_date}${time_stamp}/g" ./module.prop
+sed -i "s/versionCode=.*/versionCode=${VERCODE}${build_date}${time_stamp}" ./module.prop
 
 if $remove_bak; then
     find . -type f -name '*.bak' -exec rm -f {} +
