@@ -5,9 +5,9 @@
 SKIPUNZIP=1
 
 ui_print ""
-ui_print "░█▀█░█▀▀░█▀▀░█▀█░▀█▀░█▀█░█░█░█▀▀░█░█
-░█░█░█░█░█▀▀░█░█░░█░░█░█░█░█░█░░░█▀█
-░▀░▀░▀▀▀░▀▀▀░▀░▀░░▀░░▀▀▀░▀▀▀░▀▀▀░▀░▀"
+ui_print "   ░█▀█░█▀▀░█▀▀░█▀█░▀█▀░█▀█░█░█░█▀▀░█░█
+   ░█░█░█░█░█▀▀░█░█░░█░░█░█░█░█░█░░░█▀█
+   ░▀░▀░▀▀▀░▀▀▀░▀░▀░░▀░░▀▀▀░▀▀▀░▀▀▀░▀░▀"
 ui_print "_____________________________________________"
 ui_print "   Feel The Responsiveness and Smoothness!  "
 ui_print ""
@@ -15,7 +15,6 @@ sleep 1
 
 rm -rf /data/ngentouch
 
-ui_print ""
 sleep 1
 
 ui_print "- Finding BusyBox Binary..."
