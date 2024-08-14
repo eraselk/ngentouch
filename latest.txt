@@ -1,15 +1,4 @@
-VER="v4.0.6.stable.240807173736"
-VERCODE="4061"
-LINK="https://github.com/eraselk/ngentouch/releases/download/v4.0.6.stable/NgenTouch-v4.0.6.stable-240807173736.zip"
-CHANGELOG="• Stable version
-• New installer
-• Use system.prop for props
-• Fix code style
-• Add new touch booster
-• Fix Edge issues on Fog, Wind, and Rain Devices
-• New root method checker for updater [NEED TEST]
-• etc
-
------- Credits ------
-@Dahlah_men on Telegram
-@RiProG in Telegram"
+VER="v4.0.7.stable.2408141605"
+VERCODE="4072408141605"
+LINK="https://github.com/eraselk/ngentouch/releases/download/v4.0.7_stable/NgenTouch-v4.0.7.stable-2408141605.zip"
+CHANGELOG=""
