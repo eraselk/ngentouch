@@ -29,14 +29,14 @@ zip_name="${module_name}-${VER}-${build_date}${time_stamp}.zip"
 sed -i "s/version=.*/version=$VER.${build_date}${time_stamp}/g" ./module.prop
 
 if $remove_bak; then
-    find . -type f -name '*.bak*' -exec rm -f {} +
+    find . -type f -name '*.bak' -exec rm -f {} +
 fi
 
 bin="$CURDIR/src/system/bin"
 
 mv -f $bin/ntm.sh $bin/ntm
 
-find $CURDIR/.. -maxdepth 1 -type f -name *$module_name* -exec rm -f {} +
+find $CURDIR -maxdepth 1 -type f -name *$module_name* -exec rm -f {} +
 zip -r9 "$zip_name" *
 mv -f ./"$zip_name" ..
 
