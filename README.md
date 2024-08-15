@@ -1,12 +1,7 @@
 ## NgenTouch Module
-### Version
-```
-STABLE => v4.0.7
-MAIN   => v4.0.7
-```
 
 > [!WARNING]
-> Gacor kang ⚡⚡
+> Gimmick
 
 ![](https://github.com/user-attachments/assets/0bdad2fc-2ca5-4f29-8a99-99b858097bf1)
 
