@@ -1,25 +1,19 @@
+#!/data/data/com.termux/files/usr/bin/bash
 export CURDIR="$(pwd)"
 me="$(basename "$0")"
 me2="$0"
 
 help_usage() {
-    echo -ne "\a"
-    cat <<EOF
-$me - Do something
+printf "%s - Do something\n\n%s build\n%s install\n%s test <ARG>\n\n" "$me" "$me2" "$me2" "$me2"
+exit 1
+}
 
-$me2 build
-$me2 install
-$me2 test <ARG>
-
-EOF
-    exit 1
+pr_err() {
+printf "[ERROR] %s\n\a" "$1" >&2
 }
 
 if ! command -v sudo &>/dev/null; then
-    (
-        yes | pkg update
-        yes | pkg install tsu
-    ) &>/dev/null
+    pr_err "sudo (tsu) is not installed"
 fi
 
 case "$1" in
@@ -33,10 +27,7 @@ case "$1" in
         help_usage
     fi
 
-    cat <<EOF
-Invalid argument '$1'
-See $me2 --help
-EOF
-    exit 1
+printf "Invalid argument '%s'\nSee %s --help\n\a" "$1" "$me2"
+exit 1
     ;;
 esac

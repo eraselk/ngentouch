@@ -1,19 +1,38 @@
+#!/data/data/com.termux/files/usr/bin/bash
 set -e
 
 pr_err() {
-    echo -e "[ERROR] $1\a" >&2
+    printf "[ERROR] %s\a\n" "$1" >&2
     exit 1
 }
 
+pr_warn() {
+    printf "[WARN] %s\n" "$1"
+}
+
 env | grep -q 'com.termux' || {
-    echo 'WARN: Build using external terminal, maybe zipping not succeded?'
+    pr_warn "Build using external terminal, maybe zipping not succeded?"
     echo 'Hint: Run as root, if zipping not succeded.'
     echo
     export PATH="/data/data/com.termux/files/usr/bin:${PATH}"
 }
 
 command -v zip &>/dev/null || {
-    pr_err "Zip is not installed"
+    pr_warn "Zip is not installed"
+    sleep 1
+    echo "Installing zip..."
+    if ping -c 1 8.8.8.8 &>/dev/null; then
+        (
+        yes | apt update
+        yes | apt upgrade
+        apt install zip -y
+        ) &>/dev/null
+        echo "Done"
+    else
+        pr_err "No internet connection!"
+        sleep 1
+        exit 1
+    fi
 }
 
 module_name="NgenTouch"

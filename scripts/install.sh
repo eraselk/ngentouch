@@ -2,7 +2,7 @@
 # Install from source
 
 pr_err() {
-    echo -e "[ERROR] $1\a" >&2
+    printf "[ERROR] %s\a\n" "$1" >&2
     exit 1
 }
 
