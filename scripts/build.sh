@@ -1,8 +1,8 @@
 set -e
 
 pr_err() {
-echo -e "[ERROR] $1\a" >&2
-exit 1
+    echo -e "[ERROR] $1\a" >&2
+    exit 1
 }
 
 env | grep -q 'com.termux' || {
