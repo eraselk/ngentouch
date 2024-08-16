@@ -74,14 +74,6 @@ run() {
     write "13060" /sys/class/touch/switch/set_touchscreen
     write "14005" /sys/class/touch/switch/set_touchscreen
 
-    # SF Tweaks from HuoTouch
-    rr=$(dumpsys SurfaceFlinger | grep refresh-rate | awk '{t=$0;gsub(/.*: |.fps*/,"",t);print t}' | cut -d '.' -f1 | xargs echo)
-    _rr=$(echo "scale=7;a=1000/${rr};if(length(a)==scale(a)) print 0;print a" | bc)
-    __rr=$(echo "scale=7;a=$_rr*1000000;if(length(a)==scale(a)) print 0;print a" | bc)
-    threshold=${__rr%.*}
-
-    resetprop -n debug.sf.phase_offset_threshold_for_next_vsync_ns $threshold
-
     # InputDispatcher, and InputReader tweaks
     systemserver="$(pidof -s system_server)"
     input_reader="$(ps -ATp "$systemserver" -o tid,cmd | grep 'InputReader' | awk '{print $1}')"
