@@ -1,4 +1,4 @@
-VER="v4.0.7.stable.2408141623"
-VERCODE="4071"
-LINK="https://github.com/eraselk/ngentouch/releases/download/v4.0.7_stable/NgenTouch-v4.0.7.stable-2408141623.zip"
+VER="v4.0.8.stable.2408171346"
+VERCODE="408"
+LINK="https://github.com/eraselk/ngentouch/releases/download/v4.0.8_stable/NgenTouch-v4.0.8.stable-2408171346.zip"
 CHANGELOG=""
