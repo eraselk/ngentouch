@@ -13,3 +13,4 @@ touch.gestureMode=spots
 debug.input.normalizetouch=true
 ro.surface_flinger.max_frame_buffer_acquired_buffers=3
 debug.gr.numframebuffers=3
+debug.performance.tuning=1
