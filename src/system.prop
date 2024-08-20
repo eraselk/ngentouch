@@ -11,5 +11,5 @@ touch.distance.scale=0
 touch.coverage.calibration=box
 touch.gestureMode=spots
 debug.input.normalizetouch=true
-ro.surface_flinger.max_frame_buffer_acquired_buffers=3
-debug.gr.numframebuffers=3
+ro.surface_flinger.max_frame_buffer_acquired_buffers=5
+debug.gr.numframebuffers=5
