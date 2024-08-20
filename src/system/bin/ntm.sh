@@ -75,9 +75,9 @@ run() {
     write "14005" /sys/class/touch/switch/set_touchscreen
 
     # InputDispatcher, and InputReader tweaks
-    systemserver="$(pidof -s system_server)"
-    input_reader="$(ps -ATp "$systemserver" -o tid,cmd | grep 'InputReader' | awk '{print $1}')"
-    input_dispatcher="$(ps -ATp "$systemserver" -o tid,cmd | grep 'InputDispatcher' | awk '{print $1}')"
+    systemserver=$(pidof -s system_server)
+    input_reader=$(ps -Tp $systemserver -o tid,cmd | grep 'InputReader' | awk '{print $1}')
+    input_dispatcher=$(ps -Tp $systemserver -o tid,cmd | grep 'InputDispatcher' | awk '{print $1}')
 
     # Input Reader
     # 24.08.11: Use busybox util-linux
