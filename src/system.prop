@@ -1,3 +1,4 @@
+# Touch
 ro.input.resampling=1
 touch.pressure.scale=0.001
 touch.size.calibration=diameter
@@ -11,5 +12,13 @@ touch.distance.scale=0
 touch.coverage.calibration=box
 touch.gestureMode=spots
 debug.input.normalizetouch=true
+
+# Framebuffer
 ro.surface_flinger.max_frame_buffer_acquired_buffers=5
 debug.gr.numframebuffers=5
+
+# Scrolling tweaks from XDA
+ro.min_pointer_dur=1
+ro.max.fling_velocity=12000
+ro.min.fling_velocity=8000
+windowsmgr.max_events_per_sec=300
