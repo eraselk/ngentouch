@@ -77,14 +77,6 @@ unzip -o "$ZIPFILE" 'booster64' -d "$TMPDIR" >&2
 unzip -o "$ZIPFILE" 'booster32' -d "$TMPDIR" >&2
 mv -f $TMPDIR/module.prop $MODPATH
 
-case "$ARCH" in
-"arm64") mv -f $TMPDIR/booster64 $MODPATH/system/bin/booster ;;
-"arm") mv -f $TMPDIR/booster32 $MODPATH/system/bin/booster ;;
-*)
-    abort "! $ARCH arch is not supported"
-    ;;
-esac
-
 if cat /proc/cpuinfo | grep "Hardware" | uniq | cut -d ":" -f 2 | grep -q 'Qualcomm'; then
     echo 'persist.vendor.qti.inputopts.movetouchslop=0.1' >>$MODPATH/system.prop
     echo 'persist.vendor.qti.inputopts.enable=true' >>$MODPATH/system.prop

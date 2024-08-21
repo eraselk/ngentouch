@@ -5,6 +5,3 @@ done
 
 # exec main script
 ntm --apply
-
-# exec booster
-/system/bin/booster
