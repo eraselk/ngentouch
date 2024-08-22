@@ -10,28 +10,30 @@ pr_warn() {
     printf "[WARN] %s\n" "$1"
 }
 
-env | grep -q 'com.termux' || {
+env | grep -q 'com.termux' && external=false || {
     pr_warn "Build using external terminal, maybe zipping not succeded?"
     echo 'Hint: Run as root, if zipping not succeded.'
     echo
     export PATH="/data/data/com.termux/files/usr/bin:${PATH}"
+    external=true
 }
 
 command -v zip &>/dev/null || {
-    pr_warn "Zip is not installed"
-    sleep 1
-    echo "Installing zip..."
-    if ping -c 1 8.8.8.8 &>/dev/null; then
-        (
-        yes | apt update
-        yes | apt upgrade
-        apt install zip -y
-        ) &>/dev/null
-        echo "Done"
+    if $external; then
+        pr_err "zip is not installed, please install in the termux app."
     else
-        pr_err "No internet connection!"
+        pr_warn "zip is not installed, installing zip...."
         sleep 1
-        exit 1
+        if ping -c 1 8.8.8.8 &>/dev/null; then
+            (
+                yes | apt update
+                yes | apt upgrade
+                apt install zip -y
+            ) &>/dev/null
+            echo "Done"
+        else
+            pr_err "No internet connection!"
+        fi
     fi
 }
 
