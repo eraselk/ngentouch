@@ -30,7 +30,7 @@ run() {
 
     # Edge Fixer, Special for fog, rain, wind
     # Thanks to @Dahlah_Men
-    
+
     edge="edge_pressure edge_size edge_type"
     for row in $edge; do
         settings put system "$row" 0
@@ -73,7 +73,7 @@ run() {
 
     # InputDispatcher, and InputReader tweaks
     tids=$(ps -Tp $(pidof -s system_server) -o tid,cmd | grep -E 'InputDispatcher|InputReader' | awk '{print $1}')
-    
+
     for tid in $tids; do
         $BB renice -n -20 -p $tid
         $BB chrt -f -p 99 $tid
