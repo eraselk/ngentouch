@@ -31,15 +31,12 @@ run() {
     # Edge Fixer, Special for fog, rain, wind
     # Thanks to @Dahlah_Men
     
-    edge="edge_pressure
-    edge_size
-    edge_type"
+    edge="edge_pressure edge_size edge_type"
     for row in $edge; do
         settings put system "$row" 0
     done
 
-    edge="edge_mode_state_title
-    pref_edge_handgrip"
+    edge="edge_mode_state_title pref_edge_handgrip"
     for row in $edge; do
         settings put global "$row" false
     done
@@ -75,19 +72,12 @@ run() {
     write "14005" /sys/class/touch/switch/set_touchscreen
 
     # InputDispatcher, and InputReader tweaks
-    systemserver=$(pidof -s system_server)
-    input_reader=$(ps -Tp $systemserver -o tid,cmd | grep 'InputReader' | awk '{print $1}')
-    input_dispatcher=$(ps -Tp $systemserver -o tid,cmd | grep 'InputDispatcher' | awk '{print $1}')
-
-    # Input Reader
-    # 24.08.11: Use busybox util-linux
-    $BB renice -n -20 -p "$input_reader"
-    $BB chrt -f -p 99 "$input_reader"
-
-    # Input Dispatcher
-    # 24.08.11: Use busybox util-linux
-    $BB renice -n -20 -p "$input_dispatcher"
-    $BB chrt -f -p 99 "$input_dispatcher"
+    tids=$(ps -Tp $(pidof -s system_server) -o tid,cmd | grep -E 'InputDispatcher|InputReader' | awk '{print $1}')
+    
+    for tid in $tids; do
+        $BB renice -n -20 -p $tid
+        $BB chrt -f -p 99 $tid
+    done
 
     # always return success
     true
@@ -100,15 +90,12 @@ remove() {
         settings delete secure long_press_timeout
         settings delete global block_untrusted_touches
 
-        edge="edge_pressure
-        edge_size
-        edge_type"
+        edge="edge_pressure edge_size edge_type"
         for row in $edge; do
             settings delete system "$row"
         done
 
-        edge="edge_mode_state_title
-        pref_edge_handgrip"
+        edge="edge_mode_state_title pref_edge_handgrip"
         for row in $edge; do
             settings delete global "$row"
         done
