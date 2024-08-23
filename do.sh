@@ -4,7 +4,7 @@ me="$(basename "$0")"
 me2="$0"
 
 help_usage() {
-printf "%s - Do something\n\n%s build\n%s install\n%s test <ARG>\n\n" "$me" "$me2" "$me2" "$me2"
+printf "%s - Do something\n\n%s build\n%s install\n%s test <ARG>\n%s clean\n\n" "$me" "$me2" "$me2" "$me2" "$me2"
 exit 1
 }
 
