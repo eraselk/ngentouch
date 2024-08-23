@@ -1,6 +1,6 @@
 {
-    "version": "v4.0.8.stable.2408171346",
-    "versionCode": "408",
-    "zipUrl": "https://github.com/eraselk/ngentouch/releases/download/v4.0.8_stable/NgenTouch-v4.0.8.stable-2408171346.zip",
+    "version": "v4.0.9.stable",
+    "versionCode": "409",
+    "zipUrl": "https://github.com/eraselk/ngentouch/releases/download/v4.0.9_stable/NgenTouch-v4.0.9.stable-2408231344.zip",
     "changelog": "https://raw.githubusercontent.com/eraselk/ngentouch/main/changelog.md"
 }

@@ -1,13 +1,14 @@
-## NgenTouch v4.0.8.stable Changelog
-- Fix bootloop issues
+## NgenTouch v4.0.9.stable Changelog
+- Incerase framebuffer value
+- Add some touch/scroll tweak from XDA
+- New method to improve InputDispatcher and InputReader
+- Delete booster64 and booster32
 
-## Notes
-- To remove the module, type this on terminal.
+## NOTE
+- To remove the module, enter this command on terminal.
 ```
 su -c "ntm --remove"
 ```
-- Update the module via root manager (Magisk/KSU/Apatch)
 
-## Warning
-- On some device this module can causing bootloop!
+## WARNING
 - Gimmick
