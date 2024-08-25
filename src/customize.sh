@@ -82,6 +82,10 @@ if cat /proc/cpuinfo | grep "Hardware" | uniq | cut -d ":" -f 2 | grep -q 'Qualc
     echo 'persist.vendor.qti.inputopts.enable=true' >>$MODPATH/system.prop
 fi
 
+if awk -F: '/Hardware/ {print $2}' /proc/cpuinfo | tr -d ' ' | grep -q 'MT'; then
+    sed -i 's/mtk=false/mtk=true/g' $MODPATH/system/bin/ntm
+fi
+
 if $BB; then
 sed -i "s|BB=|BB=$BB_BIN|g" $MODPATH/system/bin/ntm
 fi

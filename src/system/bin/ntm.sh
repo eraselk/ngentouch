@@ -6,6 +6,7 @@
 
 # Automatically sets by the installer
 BB=
+mtk=false
 
 prerr() {
     echo -e "$1\a" >&2
@@ -79,6 +80,13 @@ run() {
         $BB chrt -f -p 99 $tid
     done
 
+    # Special for mediatek
+    if $mtk; then
+        pid=$(ps -Ao pid,name | awk '/irq/ && /tp/ {print $1}')
+        $BB renice -n -20 -p $pid
+        $BB chrt -f -p 99 $pid
+    fi
+    
     # always return success
     true
 }
