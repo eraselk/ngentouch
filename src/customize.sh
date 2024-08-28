@@ -1,13 +1,16 @@
 #!/bin/sh
+# shellcheck disable=SC2086
+# shellcheck disable=SC2046
+# shellcheck disable=SC2034
 
 : '----- Module Installer -----'
 
 SKIPUNZIP=1
 
 ui_print ""
-ui_print "   ░█▀█░█▀▀░█▀▀░█▀█░▀█▀░█▀█░█░█░█▀▀░█░█
-   ░█░█░█░█░█▀▀░█░█░░█░░█░█░█░█░█░░░█▀█
-   ░▀░▀░▀▀▀░▀▀▀░▀░▀░░▀░░▀▀▀░▀▀▀░▀▀▀░▀░▀"
+ui_print "░█▀█░█▀▀░█▀▀░█▀█░▀█▀░█▀█░█░█░█▀▀░█░█
+░█░█░█░█░█▀▀░█░█░░█░░█░█░█░█░█░░░█▀█
+░▀░▀░▀▀▀░▀▀▀░▀░▀░░▀░░▀▀▀░▀▀▀░▀▀▀░▀░▀"
 ui_print "_____________________________________________"
 ui_print "   Feel The Responsiveness and Smoothness!  "
 ui_print ""
@@ -21,14 +24,17 @@ ui_print "- Finding BusyBox Binary..."
 sleep 2
 BB_BIN=$(
     _=$(find /data/adb/modules -type f -name busybox)
+    if [ -n "$_" ]; then
         if [ $(echo "$_" | wc -l) -gt 1 ]; then
-            a=$(echo "$_" | head -n 1)
+            _=$(echo "$_" | head -n 1)
         fi
-    if [ -n "$_" ] && $_ &>/dev/null; then
-        echo $_
+
+        if $_ >/dev/null 2>&1; then
+            echo $_
+        fi
     else
         __=$(find /data/adb -type f -name busybox)
-        if [ -n "$__" ] && $__ &>/dev/null; then
+        if [ -n "$__" ] && $__ >/dev/null 2>&1; then
             echo $__
         fi
     fi
@@ -61,7 +67,7 @@ else
     test2=false
 fi
 
-if settings delete global test &>/dev/null; then
+if settings delete global test >/dev/null 2>&1; then
     ui_print "  Test 3: PASSED"
     test3=true
 else
@@ -72,32 +78,26 @@ fi
 ui_print ""
 if $test1 && $test2 && $test3; then
     ui_print "  Result: all commands work properly"
-    normal=true
 else
-    ui_print "  Result: -"
-    normal=false
+    abort "  Result: Not Supported"
 fi
 
 ui_print ""
 
-$normal || {
-    abort "! Not supported"
-}
-
 unzip -o "$ZIPFILE" 'system/*' -d "$MODPATH" >&2
 unzip -o "$ZIPFILE" 'service.sh' -d "$MODPATH" >&2
 unzip -o "$ZIPFILE" 'system.prop' -d "$MODPATH" >&2
-unzip -o "$ZIPFILE" 'booster64' -d "$TMPDIR" >&2
-unzip -o "$ZIPFILE" 'booster32' -d "$TMPDIR" >&2
 mv -f $TMPDIR/module.prop $MODPATH
 
-if cat /proc/cpuinfo | grep "Hardware" | uniq | cut -d ":" -f 2 | grep -q 'Qualcomm'; then
-    echo 'persist.vendor.qti.inputopts.movetouchslop=0.1' >>$MODPATH/system.prop
-    echo 'persist.vendor.qti.inputopts.enable=true' >>$MODPATH/system.prop
+if grep 'Hardware' /proc/cpuinfo | uniq | cut -d ':' -f 2 | tr -d ' ' | grep -q 'Qualcomm'; then
+    cat <<EOF >>$MODPATH/system.prop
+persist.vendor.qti.inputopts.movetouchslop=0.1
+persist.vendor.qti.inputopts.enable=true
+EOF
 fi
 
 if $BB; then
-sed -i "s|BB=|BB=$BB_BIN|g" $MODPATH/system/bin/ntm
+    sed -i "s|BB=|BB=$BB_BIN|g" $MODPATH/system/bin/ntm
 fi
 
 set_perm_recursive "$MODPATH" 0 0 0777 0777

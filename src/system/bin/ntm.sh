@@ -4,11 +4,14 @@
 # You can steal/modify/copy any codes in this script without any credits.
 #
 
+# shellcheck disable=SC2086
+# shellcheck disable=SC2046
+
 # Automatically sets by the installer
 BB=
 
 prerr() {
-    echo -e "$1\a" >&2
+    printf "%s\a\n" "$1" >&2
 }
 
 run() {
@@ -53,9 +56,12 @@ run() {
     write "1" "$i/oplus_tp_direction"
 
     # bump sampling rate
-    find /sys -type f -name bump_sample_rate | while read -r boost_sr; do
-        write "1" "$boost_sr"
-    done
+    bump_sr=$(find /sys -type f -name bump_sample_rate)
+    if [ -n "$bump_sr" ]; then
+        for i in $bump_sr; do
+            write 1 $i
+        done
+    fi
 
     # Enable Touch boost
     write "1" /sys/module/msm_performance/parameters/touchboost
@@ -104,7 +110,7 @@ remove() {
         settings delete system high_touch_sensitivity_enable
 
         touch /data/adb/modules/ngentouch_module/remove
-    ) &>/dev/null
+    ) >/dev/null 2>&1
     echo "Done, please reboot to apply changes."
     exit 0
 }
@@ -147,7 +153,7 @@ fi
 me="$(basename "$0")"
 case "$1" in
 "--apply")
-    run &>/dev/null
+    run >/dev/null 2>&1
     ;;
 "--remove")
     remove
