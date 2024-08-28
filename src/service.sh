@@ -1,6 +1,6 @@
 #!/system/bin/sh
-while [ -z "$(getprop sys.boot_completed)" ]; do
-	sleep 15
+until [ "$(getprop sys.boot_completed)" = "1" ]; do
+	sleep 1
 done
 
 # exec main script

@@ -19,8 +19,21 @@ sleep 1
 
 ui_print "- Finding BusyBox Binary..."
 sleep 2
-BB_BIN="$(find /data/adb -type f -name busybox | head -n1)"
-if [ -n "$BB_BIN" ] && $BB_BIN &>/dev/null; then
+BB_BIN=$(
+    _=$(find /data/adb/modules -type f -name busybox)
+        if [ $(echo "$_" | wc -l) -gt 1 ]; then
+            a=$(echo "$_" | head -n 1)
+        fi
+    if [ -n "$_" ] && $_ &>/dev/null; then
+        echo $_
+    else
+        __=$(find /data/adb -type f -name busybox)
+        if [ -n "$__" ] && $__ &>/dev/null; then
+            echo $__
+        fi
+    fi
+)
+if [ -n "$BB_BIN" ]; then
     ui_print "- Found BusyBox Binary: $BB_BIN"
     BB=true
 else
@@ -38,8 +51,9 @@ else
     test1=false
 fi
 
-a="$(settings get global test 2>/dev/null)"
-if [ -n "$a" ] && [ "$a" != "null" ] && [ "$a" = "1" ]; then
+a=$(settings get global test 2>/dev/null)
+exit_code=$?
+if [ $exit_code -eq 0 ] && [ "$a" = "1" ]; then
     ui_print "  Test 2: PASSED"
     test2=true
 else
