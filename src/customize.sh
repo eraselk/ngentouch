@@ -23,15 +23,8 @@ sleep 1
 ui_print "- Finding BusyBox Binary..."
 sleep 2
 BB_BIN=$(
-    _=$(find /data/adb/modules -type f -name busybox)
-    if [ -n "$_" ]; then
-        if [ $(echo "$_" | wc -l) -gt 1 ]; then
-            _=$(echo "$_" | head -n 1)
-        fi
-
-        if $_ >/dev/null 2>&1; then
-            echo $_
-        fi
+    if busybox >/dev/null 2>&1; then
+        echo busybox
     else
         __=$(find /data/adb -type f -name busybox)
         if [ -n "$__" ] && $__ >/dev/null 2>&1; then
