@@ -23,8 +23,8 @@ sleep 1
 ui_print "- Finding BusyBox Binary..."
 sleep 2
 BB_BIN=$(
-    if busybox >/dev/null 2>&1; then
-        echo busybox
+    if $(which busybox) >/dev/null 2>&1; then
+        echo $(which busybox)
     else
         __=$(find /data/adb -type f -name busybox)
         if [ -n "$__" ] && $__ >/dev/null 2>&1; then
@@ -50,9 +50,7 @@ else
     test1=false
 fi
 
-a=$(settings get global test 2>/dev/null)
-exit_code=$?
-if [ $exit_code -eq 0 ] && [ "$a" = "1" ]; then
+if a=$(settings get global test 2>/dev/null) && [ "$a" = "1" ]; then
     ui_print "  Test 2: PASSED"
     test2=true
 else
