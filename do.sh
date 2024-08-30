@@ -18,8 +18,8 @@ fi
 
 case "$1" in
 "build") $CURDIR/scripts/build.sh ;;
-"install") sudo $CURDIR/scripts/install.sh ;;
-"test") $CURDIR/scripts/test_ntm.sh "$2" ;;
+"install") su -c "sh $CURDIR/scripts/install.sh" ;;
+"test") su -c sh "$CURDIR/scripts/test_ntm.sh "$2"" ;;
 "clean") $CURDIR/scripts/clean.sh ;;
 "--help") help_usage ;;
 *)
